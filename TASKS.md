@@ -18,7 +18,8 @@ Template:
 ## Ready
 
 ### T-1: Turn on the nightly GitHub Actions run
-Status: Ready (needs the user's OK: GitHub repo, CLAUDE_CODE_OAUTH_TOKEN secret, Pages)
+Status: In progress. Step 1 done 2026-10-29 (repo created, token saved, one manual run green). Remaining steps need the user's OK and
+an answer on repo visibility (GitHub Free needs a public repo for Pages).
 Owns: .github/workflows/nightly.yml; DESIGN.md "State between nights" paragraph
 Blocked by: none
 Uses plan usage: yes (~75k tokens per document, ~5 documents a week)
@@ -31,12 +32,17 @@ Done when:
 - [ ] `schedule: cron` added (e.g. 07:30 UTC = 2:30 AM CDT), plus `workflow_dispatch`
 - [ ] Job commits data/state.json, data/published/, data/metrics.jsonl back (main or a `data` branch, chosen and written down in DESIGN.md)
 - [ ] Site is deployed with actions/upload-pages-artifact + actions/deploy-pages
-- [ ] `concurrency` set so two nights never overlap; job `timeout-minutes` set
-- [ ] The pinned `@anthropic-ai/claude-code` version in the workflow exists on npm (it was copied from the local 2.1.299 build)
-- [ ] Auth is `CLAUDE_CODE_OAUTH_TOKEN` only (`${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}`); the workflow sets no `ANTHROPIC_API_KEY` and no `SHOWME_BARE`
-- [ ] The ticket notes tell the user how to add the secret (repo Settings > Secrets and variables > Actions > New repository secret) without the builder ever seeing the value
+- [x] `concurrency` set so two nights never overlap; job `timeout-minutes` set (step 1)
+- [x] The pinned `@anthropic-ai/claude-code` version in the workflow exists on npm (2.1.312, verified, and installed on the runner)
+- [x] Auth is `CLAUDE_CODE_OAUTH_TOKEN` only (`${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}`); the workflow sets no `ANTHROPIC_API_KEY` and no `SHOWME_BARE` (pinned by tests/test_workflow_safety.py)
+- [x] The user added the secret themselves; the session saw only its name in `gh secret list`
 - [ ] A calendar reminder (or README note) to renew the token before it expires after one year
-- [ ] One manual `workflow_dispatch` run is green and the Pages URL loads
+- [x] One manual `workflow_dispatch` run is green (run 40953248835, Oct 22 minutes: 60 facts, 53 passed, 25 of 29 votes, 72.3k tokens in / 12.1k out, 6 turns, 62 s)
+- [ ] The Pages URL loads
+
+Step-1 safety, pinned by tests: manual trigger only (no pull_request, push or comment triggers), `permissions: contents: read`, every action pinned to a
+commit SHA, the token on a single step, inputs passed as validated env vars. The schedule, commit-back and Pages each widen what the workflow can do
+(`contents: write`, `pages: write`, `id-token: write`) and need the user's OK first.
 
 ### T-2: CI check on every push
 Status: Ready
