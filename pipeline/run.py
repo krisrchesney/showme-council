@@ -24,7 +24,7 @@ import os
 import sys
 
 from pipeline import paths
-from pipeline.agents import AgentOutputError, run_agent
+from pipeline.agents import AgentOutputError, find_claude, login_instructions, run_agent
 from pipeline.site import build_site
 from pipeline.sources import get_source
 from pipeline.sources.base import read_raw, write_raw
@@ -341,6 +341,7 @@ def main(argv=None):
     p.add_argument("--fixture", action="store_true")
     p.add_argument("--stub")
     sub.add_parser("build-site")
+    sub.add_parser("claude-path", help="show which claude CLI the pipeline will use, and the exact login command")
     a = ap.parse_args(argv)
 
     if a.cmd == "ingest":
@@ -359,6 +360,15 @@ def main(argv=None):
         print(json.dumps(redecide(a.doc_id), indent=2))
     elif a.cmd == "nightly":
         nightly(a.source, a.days, a.max_docs, a.loop_cap, a.fixture, a.stub)
+    elif a.cmd == "claude-path":
+        try:
+            path, how = find_claude()
+        except FileNotFoundError as e:
+            sys.exit(str(e))
+        print(f"claude CLI: {path}\n  found via: {how}")
+        if how != "PATH":
+            print("  (not on PATH, so use the full path when you run it yourself)")
+        print(f"log in (PowerShell):\n  {login_instructions(path)}")
     elif a.cmd == "build-site":
         out, n = build_site()
         print(f"{n} documents -> {out}")

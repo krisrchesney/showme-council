@@ -30,11 +30,19 @@ python -m pipeline.run process kc-19561-minutes
 python -m pipeline.run build-site                         # -> site/index.html
 ```
 
-Real runs use a Claude subscription (Pro/Max): log the CLI in with `claude auth login`,
-or set `CLAUDE_CODE_OAUTH_TOKEN` from `claude setup-token` (this is what CI uses). They
-draw on plan usage, not an API bill. Use the standalone CLI (`irm https://claude.ai/install.ps1 | iex`
-on Windows), not the copy bundled inside the desktop app; set `CLAUDE_BIN` to its full path
-(e.g. `%USERPROFILE%\.local\bin\claude.exe`) if `claude` isn't on PATH.
+Real runs use a Claude subscription (Pro/Max) and draw on plan usage, not an API bill.
+Install the standalone CLI once (`irm https://claude.ai/install.ps1 | iex` on Windows), then ask the
+repo which CLI it will use and for the exact login command with its full path:
+
+```
+python -m pipeline.run claude-path
+```
+
+It looks at `CLAUDE_BIN`, then `claude` on PATH, then `~/.local/bin/claude.exe`, then the newest
+version of the copy bundled with the desktop app. That app is a packaged Windows app, so its real
+files are under `%LOCALAPPDATA%\Packages\Claude_*\LocalCache\Roaming\Claude\claude-code\`; the
+`%APPDATA%` path only works inside the app's own sessions. In CI the login is the
+`CLAUDE_CODE_OAUTH_TOKEN` secret from `claude setup-token` (see DESIGN.md).
 (An API-key fork can set `ANTHROPIC_API_KEY` and `SHOWME_BARE=1` instead.)
 
 Unofficial and AI-written. Always check the linked official record. Source records:

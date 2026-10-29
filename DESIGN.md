@@ -128,11 +128,11 @@ the action runs one prompt, but this pipeline is three schema-checked calls with
 code in between, and Python owns that loop. The action fits "do this task in my
 repo", not "call a model three times inside my program".
 
-**Auth decision (2026-10-29): subscription, not API key.** (An API key bills per token. T-1 asks you to confirm this choice again before the workflow is built; an API key is never picked without you.) Locally the CLI
-is logged in with your plan. In Actions, run `claude setup-token` once on this PC
-and store its output under repo Settings → Secrets and variables → Actions →
+**Auth decision (2026-10-29): subscription, not API key.** (An API key bills per token. You chose the subscription token on 2026-10-29; an API key is never used without you.) Locally the CLI
+is logged in with your plan. In Actions, you run `claude setup-token` yourself once
+the repo exists and store its output under repo Settings → Secrets and variables → Actions →
 New repository secret as `CLAUDE_CODE_OAUTH_TOKEN`. The workflow reads it only as
-`${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}`; it never goes in a file. The token is tied
+`${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}`; it never goes in a file, commit, log or chat (you generate it and paste it into GitHub yourself). The token is tied
 to your personal subscription, which is fine for a personal repo (the docs suggest
 an API key only for secrets shared across an organization). The token lasts one
 year, so renewing it is a yearly chore (T-1). If `ANTHROPIC_API_KEY` is also set,

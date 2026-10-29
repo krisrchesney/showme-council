@@ -16,9 +16,11 @@ Auth (DESIGN.md "Auth decision"): the Claude subscription. Locally that's the
 --bare never reads OAuth, so it is API-key only.
 """
 
+import glob
 import json
 import os
 import re
+import shutil
 import subprocess
 import time
 
@@ -49,8 +51,78 @@ def load_schema(schema):
         return json.load(f)
 
 
+EXE = "claude.exe" if os.name == "nt" else "claude"
+
+
+def _version_key(path):
+    """Sort key for .../claude-code/<version>/<hash>/claude.exe: numeric, so 2.1.10 > 2.1.9."""
+    m = re.search(r"claude-code[\\/]+(\d+(?:\.\d+)*)[\\/]", path)
+    return (tuple(int(x) for x in m.group(1).split(".")) if m else (), os.path.getmtime(path))
+
+
+def _newest(pattern):
+    hits = glob.glob(pattern)
+    return max(hits, key=_version_key) if hits else None
+
+
+def find_claude(env=None, which=shutil.which, home=None):
+    """Locate the claude CLI. Returns (path, how_it_was_found); raises FileNotFoundError listing
+    everywhere it looked. Order:
+      1. CLAUDE_BIN (explicit; if set but missing that is an error, not a fallthrough)
+      2. `claude` on PATH
+      3. the standalone install, ~/.local/bin/claude(.exe)
+      4. the newest version folder of the copy bundled with the Claude desktop app.
+         The desktop app is a packaged Windows app: its real files live under
+         %LOCALAPPDATA%\\Packages\\Claude_*\\LocalCache\\Roaming\\Claude\\claude-code\\<version>\\<hash>\\,
+         and %APPDATA%\\Claude\\claude-code only resolves inside the app's own sessions,
+         so both are searched, packaged location first.
+    """
+    env = os.environ if env is None else env
+    home = home or os.path.expanduser("~")
+    tried = []
+
+    explicit = env.get("CLAUDE_BIN")
+    if explicit:
+        if os.path.isfile(explicit):
+            return explicit, "CLAUDE_BIN"
+        raise FileNotFoundError(f"CLAUDE_BIN is set to {explicit!r} but no file is there")
+
+    on_path = which("claude")
+    tried.append("`claude` on PATH")
+    if on_path:
+        return on_path, "PATH"
+
+    standalone = os.path.join(home, ".local", "bin", EXE)
+    tried.append(standalone)
+    if os.path.isfile(standalone):
+        return standalone, "standalone install"
+
+    roots = []
+    if env.get("LOCALAPPDATA"):
+        roots.append(os.path.join(env["LOCALAPPDATA"], "Packages", "Claude_*", "LocalCache", "Roaming"))
+    if env.get("APPDATA"):
+        roots.append(env["APPDATA"])
+    for root in roots:
+        pattern = os.path.join(root, "Claude", "claude-code", "*", "*", EXE)
+        tried.append(pattern)
+        hit = _newest(pattern)
+        if hit:
+            return hit, "desktop app's bundled copy (newest version)"
+    raise FileNotFoundError("claude CLI not found. Looked in: " + "; ".join(tried) +
+                            ". Install it with: irm https://claude.ai/install.ps1 | iex   (or set CLAUDE_BIN)")
+
+
+def login_instructions(path=None):
+    """Exact commands to log in, using the full resolved path so the user can paste them."""
+    path = path or find_claude()[0]
+    return f'& "{path}" auth login'
+
+
 def build_command(name, schema, agents_file, loop_cap):
-    exe = os.environ.get("CLAUDE_BIN", "claude")
+    try:
+        exe = find_claude()[0]
+    except FileNotFoundError:
+        exe = "claude"          # run_agent re-resolves strictly and gives the helpful error
     cmd = [exe, "-p", TASK,
            "--agents", agents_file, "--agent", name,
            "--output-format", "json",
@@ -121,6 +193,7 @@ def run_agent(name, schema, payload, out_dir, loop_cap, stub_dir=None, timeout=9
     with open(agents_file, "w", encoding="utf-8") as f:
         json.dump({name: agent}, f)
 
+    find_claude()   # fail with the list of places searched, not a bare "file not found"
     env = clean_env()
     env["SHOWME_PIPELINE"] = "1"  # tells the Stop hook to stay out of pipeline runs
     t0 = time.time()
