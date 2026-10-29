@@ -1,0 +1,29 @@
+{
+ "headline": "Council passes ProspectUs fund law, sends $1M playground plan to committee",
+ "sentences": [
+  {
+   "text": "The Council passed Ordinance 260919, a city law.",
+   "claim_ids": [
+    "c1"
+   ]
+  },
+  {
+   "text": "It also considered spending up to $1,100,000.00 on audio and video upgrades at City Hall.",
+   "claim_ids": [
+    "c2"
+   ]
+  },
+  {
+   "text": "A plan to spend $1,000,000.00 on a new playground at Barry Road Park went to a committee for review first.",
+   "claim_ids": [
+    "c3"
+   ]
+  },
+  {
+   "text": "The audio and video upgrades could cost up to $2,100,000.00.",
+   "claim_ids": [
+    "c4"
+   ]
+  }
+ ]
+}

@@ -1,0 +1,27 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["claims"],
+  "properties": {
+    "claims": {
+      "type": "array",
+      "maxItems": 60,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "type", "statement", "quote", "page", "matter_file", "outcome", "amount_usd", "date"],
+        "properties": {
+          "id": {"type": "string", "description": "c1, c2, ... in document order"},
+          "type": {"type": "string", "enum": ["vote", "spending", "date", "appointment", "other"]},
+          "statement": {"type": "string", "description": "One plain-English sentence stating the fact."},
+          "quote": {"type": "string", "description": "Verbatim text copied from the source that proves the statement, 20-400 characters."},
+          "page": {"type": "integer", "minimum": 1},
+          "matter_file": {"type": ["string", "null"], "description": "Legislation number such as 260919, or null."},
+          "outcome": {"type": ["string", "null"], "enum": ["passed", "adopted", "failed", "held", "referred", "other", null]},
+          "amount_usd": {"type": ["number", "null"]},
+          "date": {"type": ["string", "null"], "description": "YYYY-MM-DD if the fact is about a date, else null."}
+        }
+      }
+    }
+  }
+}

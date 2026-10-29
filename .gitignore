@@ -1,0 +1,22 @@
+__pycache__/
+*.pyc
+
+# Secrets - never commit
+.env
+*.key
+anthropic_api_key*
+
+# Pipeline working data: rebuilt each night. data/published/ and data/metrics.jsonl
+# are the record and are kept (see DESIGN.md "State between nights").
+data/raw/
+data/work/
+data/state.json.tmp
+site/
+
+# Local scratch
+.venv/
+*.log
+
+# Claude Code: per-user settings and worktrees
+.claude/settings.local.json
+.claude/worktrees/

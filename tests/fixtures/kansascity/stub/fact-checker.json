@@ -1,0 +1,66 @@
+{
+ "claims": [
+  {
+   "id": "c1",
+   "verdict": "SUPPORTED",
+   "reason": "The minutes record that Ordinance 260919 was Passed."
+  },
+  {
+   "id": "c2",
+   "verdict": "SUPPORTED",
+   "reason": "The ordinance text authorizes expending up to $1,100,000.00 for AV upgrades at City Hall."
+  },
+  {
+   "id": "c3",
+   "verdict": "SUPPORTED",
+   "reason": "The minutes show 260931 referred to the Neighborhood Planning and Development Committee."
+  },
+  {
+   "id": "c4",
+   "verdict": "UNSUPPORTED",
+   "reason": "The source says $1,100,000.00, not $2,100,000.00."
+  },
+  {
+   "id": "c5",
+   "verdict": "UNSUPPORTED",
+   "reason": "No property tax increase appears in the minutes."
+  },
+  {
+   "id": "c6",
+   "verdict": "UNSUPPORTED",
+   "reason": "260931 was referred to committee, not passed."
+  },
+  {
+   "id": "c7",
+   "verdict": "PARTIAL",
+   "reason": "'unanimously' and 'full Council' are wrong: Robinson was excused."
+  }
+ ],
+ "sentences": [
+  {
+   "index": 0,
+   "verdict": "FAITHFUL",
+   "reason": "Matches c1."
+  },
+  {
+   "index": 1,
+   "verdict": "FAITHFUL",
+   "reason": "Matches c2."
+  },
+  {
+   "index": 2,
+   "verdict": "FAITHFUL",
+   "reason": "Matches c3; 'went to a committee' rewords 'referred'."
+  },
+  {
+   "index": 3,
+   "verdict": "FAITHFUL",
+   "reason": "Matches c4 as stated."
+  },
+  {
+   "index": 4,
+   "verdict": "UNFAITHFUL",
+   "reason": "'ProspectUs fund' is not in any cited claim's statement."
+  }
+ ]
+}

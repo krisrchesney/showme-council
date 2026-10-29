@@ -1,0 +1,162 @@
+# showme-council design
+
+Every night, a pipeline pulls new Kansas City Council and committee records, has
+three Claude agents turn them into fact-checked plain-language summaries, and
+publishes the result as a static site. Nothing reaches the site unless code
+**and** a separate fact-checking agent both find it in the source text.
+
+Source choice (researched 2026-10-29, links opened live): Kansas City's Legistar
+Web API is a free JSON feed with no key, and it has outcomes and per-member roll
+calls. Columbia uses the same API (T-4). St. Charles County publishes PDFs only,
+and its minutes are scanned images (T-6). St. Louis's robots.txt blocks the bill
+pages, so it was dropped.
+
+## Pipeline stages and handoff files
+
+Stages talk only through files. Any stage can be re-run, inspected, or swapped
+on its own.
+
+```
+             Legistar API (JSON) + agenda/minutes PDF
+                          │
+ 1. ingest (code)         ▼   data/raw/<doc>/meta.json, source.txt, api_items.json
+                          │
+ 2. extractor (agent)     ▼   data/work/<doc>/facts.json        claims, each with a verbatim quote
+                          │
+ 3. code checks           ▼   data/work/<doc>/checks.json       quote found? numbers in quote? API agrees?
+                          │
+ 4. summarizer (agent)    ▼   data/work/<doc>/summary.json      sentences that cite claim ids
+                          │   (sees claims only, never the source)
+ 5. fact-checker (agent)  ▼   data/work/<doc>/verdicts.json     per-claim and per-sentence verdicts
+                          │
+ 6. decide (code)         ▼   data/work/<doc>/report.json       accepted / rejected + reasons
+                          │   data/published/<doc>.json         accepted claims and sentences ONLY
+                          │   data/metrics.jsonl                one line per document
+ 7. build-site (code)     ▼   site/index.html, site/doc/<doc>.html
+```
+
+| Piece | File | What it does |
+|---|---|---|
+| Source adapter | `pipeline/sources/legistar.py` | Lists meetings for the chosen bodies, downloads the PDF, extracts text with page markers, and attaches API items (matter number, action, pass/fail, roll call). Live or fixture transport. |
+| Extractor | `.claude/agents/extractor.md` | Source text → up to 40 claims (`statement`, verbatim `quote`, `page`, `matter_file`, `outcome`, `amount_usd`). Told precision beats coverage. |
+| Code checks | `pipeline/verify.py` | Deterministic and free. See scoring below. |
+| Summarizer | `.claude/agents/summarizer.md` | Claims → headline + 3-8 sentences, each citing claim ids. It never sees the document, so it can only restate claims. |
+| Fact-checker | `.claude/agents/fact-checker.md` | Gets the full source, the claims, the code results and the sentences. Assumes the others made mistakes. |
+| Decide | `pipeline/verify.py: decide()` | Combines the code checks and the verdicts. It's the only code that writes `data/published/`. |
+| Site | `pipeline/site.py` | Static HTML: each fact links to its quote, page and the official PDF, and every page shows its own pass/reject counts. |
+| Orchestrator | `pipeline/run.py` | `ingest`, `estimate`, `process`, `nightly`, `build-site`. Budget caps live here. |
+
+Each agent stage is one headless Claude Code call (`pipeline/agents.py`):
+
+```
+claude -p "<task>" --agents <built from .claude/agents/*.md> --agent extractor
+       --output-format json --json-schema schemas/extractor.json
+       --tools "" --max-budget-usd <what's left> --no-session-persistence
+       --strict-mcp-config --disable-slash-commands --effort medium
+```
+
+The payload goes in on stdin. `--json-schema` makes the output machine-checkable.
+`--tools ""` means an agent can only read what it's given and return JSON, so an
+instruction hidden in a PDF has nothing to act with. The `.md` agent files are the
+single source of truth: a person can run the same agent by hand, and the pipeline
+builds its `--agents` JSON from them.
+
+## How the fact-checker scores support (the metric)
+
+A claim is **accepted** only if all five checks pass:
+
+| # | Check | Who | Rejects when |
+|---|---|---|---|
+| 1 | `quote_found` | code | The normalized quote isn't in the source exactly and no window is ≥ 0.92 similar (`FUZZY_MIN`, which allows for PDF spacing noise). |
+| 2 | `quote_length` | code | The quote is under 20 characters, too short to prove anything ("Passed"). |
+| 3 | `numbers_in_quote` | code | A number in the statement or `amount_usd` isn't in the quote. The meeting date's parts are allowed. |
+| 4 | `api_agrees` | code | The claim says "passed" but the city's own record for that matter number says "referred" (or the other way round). Skipped when the API has no record. |
+| 5 | verdict | fact-checker agent | The verdict is anything but `SUPPORTED` (`PARTIAL` = one detail wrong, `UNSUPPORTED` = not in the source). |
+
+A summary **sentence** is published only if the fact-checker marks it `FAITHFUL`
+to the claims it cites **and** every one of those claims was accepted. A faithful
+sentence about a rejected claim is still dropped. The headline is checked as one
+extra sentence; if it fails, the page uses a plain "Council minutes, 2026-10-22" title.
+
+**Metrics per document** (in `report.json`, `metrics.jsonl`, and shown on the site):
+- `claim_pass_rate` = accepted / extracted, plus counts for each rejection reason
+- `sentence_pass_rate` = published / written
+- `code_vs_checker`: how often code and the LLM checker agree. Disagreements are
+  the interesting cases. Code catches a wrong number reliably; only the agent
+  catches "unanimously" when one member was excused.
+
+Why two layers: the model that does the work never judges its own work. Code
+checks are cheap and can't be talked out of a result. The agent catches meaning
+errors that string matching can't see. The stub fixture plants one error of each
+kind, and `tests/test_verify.py` proves each is caught for the right reason.
+
+What the metric does not prove: recall (facts the extractor missed), or that
+the fact-checker itself is right. T-5 adds planted errors to real runs to
+measure the checker's catch rate.
+
+## Schedule: GitHub Actions vs. a local scheduled task
+
+Checked against the current docs (code.claude.com/docs/en/github-actions and
+/headless, 2026-10-29).
+
+| | GitHub Actions cron (recommended) | Windows Task Scheduler on this PC |
+|---|---|---|
+| Runs when the PC is off | Yes | No |
+| Auth | Repo secret `ANTHROPIC_API_KEY` (Console key, API billing) **or** `CLAUDE_CODE_OAUTH_TOKEN` from `claude setup-token` (uses your Pro/Max plan) | Whatever `claude` is logged in with locally |
+| Reproducible | `--bare` (set `SHOWME_BARE=1`) skips local hooks, CLAUDE.md and OAuth; needs the API key | Depends on local state |
+| Publishing | `actions/deploy-pages` in the same job | Needs a `git push` from this PC |
+| Cost of the runner | Free for a public repo | Free |
+| Gotchas | Cron runs only from the default branch; GitHub turns schedules off after 60 days without repo activity (the nightly data commit counts as activity); cron times are UTC and can start late | PC asleep = missed night |
+
+Why the workflow calls the `claude` CLI directly instead of `anthropics/claude-code-action`:
+the action runs one prompt, but this pipeline is three schema-checked calls with
+code in between, and Python owns that loop. The action fits "do this task in my
+repo", not "call a model three times inside my program".
+
+The secret is stored under repo Settings → Secrets and variables → Actions →
+New repository secret, and is read only as `${{ secrets.ANTHROPIC_API_KEY }}`.
+It never goes in a file. `.github/workflows/nightly.yml` is written but has
+**no cron trigger yet**; enabling it is T-1 and needs your OK.
+
+**State between nights.** `data/state.json` (what's done or failed),
+`data/published/` and `data/metrics.jsonl` are the record and get committed.
+`data/raw/`, `data/work/` and `site/` are rebuilt each night and are gitignored.
+In Actions, the job commits the record back (T-1 decides main vs. a `data` branch).
+
+## Cost per night
+
+Prices: Opus 5.5 $4 / $20 per million input / output tokens; Sonnet 5.5 $2 / $10;
+Haiku 5.5 $0.10 / $0.50. Agents default to Opus 5.5 (`model:` in each `.md`).
+
+One KC Council minutes document (the 2026-10-22 fixture: 28 pages, about 12.6k
+tokens of text). `python -m pipeline.run estimate <doc>` gives:
+
+| Stage | In (tokens) | Out incl. thinking | Opus 5.5 |
+|---|---|---|---|
+| extractor | ~19k | ~9k | $0.26 |
+| summarizer | ~10k | ~2.5k | $0.09 |
+| fact-checker | ~27k | ~6k | $0.23 |
+| **per document** | | | **≈ $0.57** |
+
+Volume with the chosen bodies (Council + 3 standing committees): about 5 new
+documents a week (Council agenda and minutes, committee agendas), so **about
+$0.40 a night on average and about $12 a month on Opus 5.5**. That's ~$6/month if
+all three agents switch to Sonnet 5.5, and much less on Haiku 5.5, untested for
+quality. Committee agendas are shorter than the fixture, so these numbers are
+on the high side. The first real runs replace them: every run records Claude
+Code's reported `total_cost_usd` per stage in `report.json`.
+
+Hard caps: `--max-budget-usd` on every call (the stage gets what's left of the
+document's cap), `$1.50` per document, `$4.00` per night (`nightly --max-usd`).
+Hitting the nightly cap leaves the remaining documents for tomorrow. GitHub runner
+minutes: free for a public repo.
+
+## Rules the design depends on
+
+- Publish only our own summaries plus short cited quotes, and link to the
+  official PDF. Don't re-host city PDFs. None of the sources has an open license.
+  These are public records under Missouri's Sunshine Law (RSMo ch. 610).
+- Every page says the content is unofficial and AI-written, and credits the source.
+- No agent has tools. No agent output is published without `decide()`.
+- Tests are offline: `tests/fixtures/kansascity/` is a real cached meeting, and
+  `stub/` holds hand-written agent outputs with planted errors.

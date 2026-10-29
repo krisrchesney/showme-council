@@ -1,0 +1,33 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["claims", "sentences"],
+  "properties": {
+    "claims": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "verdict", "reason"],
+        "properties": {
+          "id": {"type": "string"},
+          "verdict": {"type": "string", "enum": ["SUPPORTED", "PARTIAL", "UNSUPPORTED"]},
+          "reason": {"type": "string", "description": "One sentence. For PARTIAL/UNSUPPORTED, name the exact word or number that the source does not back."}
+        }
+      }
+    },
+    "sentences": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["index", "verdict", "reason"],
+        "properties": {
+          "index": {"type": "integer", "minimum": 0},
+          "verdict": {"type": "string", "enum": ["FAITHFUL", "UNFAITHFUL"]},
+          "reason": {"type": "string"}
+        }
+      }
+    }
+  }
+}
