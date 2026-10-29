@@ -114,24 +114,34 @@ def numbers_check(claim, meta):
     return sorted(wanted - allowed, key=lambda x: float(x))
 
 
-_OUTCOME_WORDS = {
-    "passed": ("passed", "pass"), "adopted": ("adopted", "pass"), "failed": ("failed", "fail"),
-    "held": ("held",), "referred": ("referred",),
+# What each claimed outcome looks like in the city's own record (Legistar's action names and pass/fail flag).
+# The city's wording varies: "Held on Docket" (Council), "Hold on Agenda" and "Held in Committee" (committees),
+# "referred" and "Re-referred", "Adv and Do Pass" and "Move to Advance" (a committee advancing an item to the
+# Council, which is not the Council passing it). Word boundaries matter: "Adv and Do Pass" must NOT read as "passed".
+_OUTCOME_ACTION = {
+    "passed": re.compile(r"\bpassed\b"),
+    "adopted": re.compile(r"\badopted\b"),
+    "failed": re.compile(r"\bfailed\b"),
+    "held": re.compile(r"\bheld\b|\bhold\b"),
+    "referred": re.compile(r"\bre-?referred\b|\breferred\b"),
+    "advanced": re.compile(r"\badv\b|\badvanced?\b|\bdo pass\b"),
 }
+_OUTCOME_FLAG = {"passed": "pass", "adopted": "pass", "failed": "fail"}   # the API's PassedFlagName
 
 
 def api_check(claim, api_items):
-    """'agree', 'disagree' or 'unchecked' (no matter number, no outcome, or the API lacks the item)."""
+    """'agree', 'disagree' or 'unchecked' (no matter number, no checkable outcome, or the API lacks the item)."""
     mf, outcome = claim.get("matter_file"), claim.get("outcome")
-    if not mf or outcome not in _OUTCOME_WORDS:
+    if not mf or outcome not in _OUTCOME_ACTION:
         return "unchecked"
     rows = [r for r in api_items if (r.get("EventItemMatterFile") or "").strip() == str(mf).strip()]
     rows = [r for r in rows if r.get("EventItemActionName") or r.get("EventItemPassedFlagName")]
     if not rows:
         return "unchecked"
     for r in rows:
-        recorded = f"{r.get('EventItemActionName') or ''} {r.get('EventItemPassedFlagName') or ''}".lower()
-        if any(w in recorded for w in _OUTCOME_WORDS[outcome]):
+        action = (r.get("EventItemActionName") or "").lower()
+        flag = (r.get("EventItemPassedFlagName") or "").lower()
+        if _OUTCOME_ACTION[outcome].search(action) or (flag and flag == _OUTCOME_FLAG.get(outcome)):
             return "agree"
     return "disagree"
 

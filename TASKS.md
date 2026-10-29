@@ -111,17 +111,6 @@ Done when:
 - [ ] Offline test: a rejected claim that the headline does not cite no longer costs the headline; one it does cite still does
 - [ ] A saved run with no `headline_claim_ids` keeps the conservative rule
 
-### T-11: Match the city's own wording for outcomes (held, referred, advanced...)
-Status: Ready
-Owns: pipeline/verify.py `_OUTCOME_WORDS` and `api_check()`; tests/test_verify.py ApiTests; a re-score of tests/fixtures/kansascity/runs/ (not the frozen test)
-Blocked by: none
-Uses plan usage: no
-Why: Test 2 (docs/MODEL-COMPARISON.md): the committee minutes record "Hold on Agenda"; the check looks for the word "held" and reported `api_disagrees` on two true facts. Document 3 failed the 80% bar on it. The city's action vocabulary seen so far: Adopted, Adopted as Substituted, Adv and Do Pass, Adv and Do Pass as Cmte Sub, Held on Docket, Hold on Agenda, Move To Introduce, Passed, Passed as Substituted, Re-referred, received and filed, referred.
-Done when:
-- [ ] "held" matches "Held on Docket", "Hold on Agenda" and "Held in Committee"; "referred" matches "Re-referred"; "Adv and Do Pass" is checkable (an `advanced` outcome), instead of `other` being unchecked
-- [ ] A claim that disagrees with the city's wording still gets `api_disagrees` (tests for each pair, including a wrong one)
-- [ ] The saved outputs of all three test-2 documents are re-scored with the new code and reported as a labelled post-hoc re-score, never as a pass of the pre-registered test
-
 ### T-12: Verify derived tallies against the API roll call
 Status: Ready
 Owns: pipeline/verify.py (new `tally_check()` beside `numbers_check`); pipeline/run.py `process()` wiring; tests/test_verify.py
@@ -154,6 +143,17 @@ Done when:
 - [ ] Offline tests that each new kind is false, passes the code checks, and never reaches published output
 - [ ] One real `canary-eval` on the three saved runs; the catch rate per kind is added to docs/MODEL-COMPARISON.md
 
+### T-15: Tell the extractor about the `advanced` outcome
+Status: Ready
+Owns: .claude/agents/extractor.md (one sentence); tests/test_agents_and_hygiene.py
+Blocked by: none
+Uses plan usage: yes (one real run to see it used; give the heads-up first)
+Why: T-11 made "Adv and Do Pass" checkable against the city's record as outcome `advanced`, but the extractor doesn't know the value exists, so committee claims still come back as `other` and stay unchecked.
+Done when:
+- [ ] The prompt says: use `advanced` when the minutes show a committee advancing an item to the Council ("Adv and Do Pass", "Move to Advance"); never `passed` for that
+- [ ] One Sonnet run on the committee minutes (kc-19460-minutes) into experiments/ shows `advanced` claims that the city's record confirms
+- [ ] Coverage and pass rate on that run are no worse than the saved one
+
 ## In progress
 
 ## Review
@@ -163,3 +163,4 @@ Done when:
 - T-8: Coverage metric from the city's own vote record, plus a "this may need Opus: only N of M voted items covered" stop (floor 40%, 5+ votes); tests pin Opus 19/29, Sonnet first prompt 4/29, Sonnet coverage prompt 26/29 (2026-10-29)
 - T-9: Extractor prompt asks for one fact per voted or money item. One Sonnet 5.5 run on kc-19561-minutes: 60 facts, 55 pass, coverage 26/29, all 42 vote facts match the city's record. Found and fixed a first-occurrence flaw in the matter-block check on the way (docs/MODEL-COMPARISON.md) (2026-10-29)
 - T-5: Planted errors (flipped outcome, false "unanimously", swapped councilmember, wrong body) ride in the fact-checker's input, are never told apart and never published. First measurement on three saved runs: caught 10 of 10, 0 of 118 real claims flagged; 78.9k tokens in / 9.6k out, 6 turns, 63 s (2026-10-29)
+- T-11: Outcomes are compared with the city's own wording (held = Held on Docket / Hold on Agenda; referred includes Re-referred; advanced = Adv and Do Pass) and "Adv and Do Pass" no longer reads as "passed". Post-hoc re-score of the three test-2 runs: Oct 22 and Oct 8 unchanged, Sept 8 committee 7 to 9 of 10 (70% to 90%); labelled post-hoc, the pre-registered test still stands as failed (2026-10-29)
