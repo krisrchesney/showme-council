@@ -77,7 +77,9 @@ def doc_page(d):
         + f"<div class='card muted'>Fact-check: <b class='ok'>{r['claims_accepted']}</b> of {r['claims_extracted']} "
           f"extracted facts passed ({pct(r['claim_pass_rate'])}); {r['claims_rejected']} were rejected and are not shown. "
           f"{r['sentences_published']} of {r['sentences_written']} summary sentences passed. "
-          f"<a href='{e(m['detail_url'] or m['pdf_url'])}'>Official record</a></div>"
+          + (f"These facts cover {r['coverage']['covered']} of the {r['coverage']['voted']} items the Council voted on. "
+             if r.get("coverage") else "")
+          + f"<a href='{e(m['detail_url'] or m['pdf_url'])}'>Official record</a></div>"
         + "<h2>Facts and their sources</h2>" + ("".join(claims) or "<p class='muted'>None passed.</p>"))
     return page(f"{d['headline']} | showme-council", body)
 
@@ -96,8 +98,11 @@ def index_page(docs, metrics):
         for k, v in x.get("reject_reasons", {}).items():
             reasons[k] = reasons.get(k, 0) + v
     rtable = "".join(f"<tr><td>{e(k)}</td><td>{v}</td></tr>" for k, v in sorted(reasons.items(), key=lambda kv: -kv[1]))
+    cov = [x["coverage"] for x in metrics if x.get("coverage")]
+    cov_v, cov_c = sum(c["voted"] for c in cov), sum(c["covered"] for c in cov)
     stats = (f"<div class='card'><b>Fact-checker so far:</b> {tot_a} of {tot_x} extracted facts passed "
              f"({pct(tot_a / tot_x if tot_x else None)}) across {len(metrics)} documents."
+             + (f" <b>Coverage:</b> {cov_c} of {cov_v} recorded votes have at least one checked fact ({pct(cov_c / cov_v)})." if cov_v else "")
              + (f"<table><tr><th>Why facts were rejected</th><th>Count</th></tr>{rtable}</table>" if rtable else "")
              + "</div>")
     body = ("<h1>What Kansas City Council decided</h1>"

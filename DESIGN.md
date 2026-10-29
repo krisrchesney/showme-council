@@ -69,8 +69,8 @@ A claim is **accepted** only if all six checks pass:
 |---|---|---|---|
 | 1 | `quote_found` | code | The normalized quote isn't in the source exactly and no window is ≥ 0.92 similar (`FUZZY_MIN`, which allows for PDF spacing noise). |
 | 2 | `quote_length` | code | The quote is under 20 characters, too short to prove anything ("Passed"). |
-| 3 | `numbers_in_quote` | code | A number in the statement or `amount_usd` isn't in the quote. The meeting date's parts are allowed, and so is the claim's own matter number when check 4 proves it by position. |
-| 4 | `matter_block` | code | The quote sits inside a *different* agenda item's text than the matter number the claim names. Legistar minutes print an item's number a few lines after its description, so a correct quote often can't contain it. The blocks are found by locating each API item's description in the source. If the claimed item can't be located, this check is skipped, not failed. |
+| 3 | `numbers_in_quote` | code | A number in the statement or `amount_usd` isn't in the quote. The meeting date's parts are allowed, so is the claim's own matter number when check 4 proves it by position, and so are ordinals in the statement ("63rd Street" is a name; "November 5th" in a quote still supports "November 5"). |
+| 4 | `matter_block` | code | The quote occurs only inside *other* agenda items' text than the matter number the claim names. Legistar minutes print an item's number a few lines after its description, so a correct quote often can't contain it. The blocks are found by locating each API item's description in the source. Any occurrence of the quote inside the claimed item's own block counts: boilerplate such as "A motion was made that this Ordinance be Passed" repeats under every passed item, so looking only at its first occurrence blames the wrong item (found by the Sonnet comparison). A boilerplate quote still can't back a claim about an item whose block lacks it. If the claimed item can't be located, the check is skipped, not failed. |
 | 5 | `api_agrees` | code | The claim says "passed" but the city's own record for that matter number says "referred" (or the other way round). Skipped when the API has no record. |
 | 6 | verdict | fact-checker agent | The verdict is anything but `SUPPORTED` (`PARTIAL` = one detail wrong, `UNSUPPORTED` = not in the source). |
 
@@ -79,9 +79,19 @@ to the claims it cites **and** every one of those claims was accepted. A faithfu
 sentence about a rejected claim is still dropped. The headline is checked as one
 extra sentence; if it fails, the page uses a plain "Council minutes, 2026-10-22" title.
 
+The headline is held to the same rule as the sentences: it is published only if the checker marks
+it FAITHFUL **and every claim the summary cited was accepted** (a rejected fact can't ride in on a
+headline). That is conservative: one dropped sentence sends the page back to a plain title until T-10
+gives the headline its own claim list.
+
 **Metrics per document** (in `report.json`, `metrics.jsonl`, and shown on the site):
 - `claim_pass_rate` = accepted / extracted, plus counts for each rejection reason
 - `sentence_pass_rate` = published / written
+- `coverage` = of the agenda items the city's API records a pass/fail for (minutes only), how many
+  have at least one **accepted** fact. The pass rate says how much of what was extracted survived;
+  coverage says how much of the meeting was extracted at all, measured against the city's own
+  record. On the 2026-10-22 minutes: Opus 19 of 29 (66%), Sonnet with the first prompt 4 of 29 (14%),
+  Sonnet with the coverage prompt 26 of 29 (90%).
 - `code_vs_checker`: how often code and the LLM checker agree. Disagreements are
   the interesting cases. Code catches a wrong number reliably; only the agent
   catches "unanimously" when one member was excused.
@@ -198,13 +208,18 @@ what the CLI can enforce. They are tripwires set several times above a normal ru
 Default to **Sonnet 5.5** (`claude-sonnet-5-5`) for the three pipeline agents and for
 the planner and reviewer dev agents. Move to a bigger model only when the user
 asks for it, never automatically. That's a user-set rule, not a measurement: it
-needs a first Sonnet run to confirm quality is acceptable.
+was checked with a Sonnet run on one document (docs/MODEL-COMPARISON.md): with the coverage
+prompt it matched Opus on accuracy and beat it on coverage. Treat that as one data point.
 
 How escalation works, with no silent model switching:
 - The pipeline stops a document with `status: needs_model` and prints
   `this may need Opus: <why>. Rerun with: python -m pipeline.run process <doc> --model claude-opus-5-5`
   when, on the default model, (a) an agent returns nothing that parses against its
-  schema, or (b) the fact-checker gives no verdict for more than 10% of the claims.
+  schema, (b) the fact-checker gives no verdict for more than 10% of the claims, or (c) coverage is
+  under 40% (`COVERAGE_MIN`) for a meeting with at least 5 recorded votes: "only N of M voted items
+  covered". (c) was added after Sonnet's first prompt produced 7 facts from a 29-vote meeting and no
+  other rule noticed. The 40% floor sits between Opus (66%) and that run (14%); it is a first guess from
+  one document. Stub runs skip (c), and an explicit Opus run reports coverage without stopping.
 - Retrying the same model won't help, so nightly leaves a `needs_model` document
   alone until the user reruns it. Everything else keeps going.
 - The user reruns that one document with `--model claude-opus-5-5`, which overrides

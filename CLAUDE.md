@@ -64,3 +64,7 @@ Runs on the user's Claude subscription. Report usage (tokens, turns, time), not 
 One line per finished ticket: what went wrong or what review caught. Added on
 master by the session that merges (not by builders, so branches don't conflict).
 Read these before starting a ticket.
+- T-8/T-9: when the code check rejected 34 claims the fact-checker had marked SUPPORTED, the code was wrong (it located a repeated boilerplate quote by its first occurrence). Read disagreements before trusting either side, and compare models on the same, fixed verify.py.
+- T-8/T-9: a prompt that said "precision matters far more than coverage" made Sonnet write 7 facts from a 29-vote meeting. Ask for completeness explicitly, and measure coverage against the city's own record (`coverage`), not just the pass rate.
+- T-8/T-9: a headline could restate a rejected fact; it now requires every claim it cites to be accepted. When adding anything that gets published, check it against the accepted set, not just the checker's verdict.
+- Fixing a number regex: match the whole number first and filter after; a lookahead that backtracks turned "63rd" into "6".

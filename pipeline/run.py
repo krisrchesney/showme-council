@@ -28,7 +28,7 @@ from pipeline.agents import AgentOutputError, find_claude, login_instructions, r
 from pipeline.site import build_site
 from pipeline.sources import get_source
 from pipeline.sources.base import read_raw, write_raw
-from pipeline.verify import code_checks, decide, split_pages
+from pipeline.verify import COVERAGE_MIN, COVERAGE_MIN_ITEMS, code_checks, coverage, decide, split_pages
 
 # API-equivalent rates, USD per million tokens (claude-api reference, cached 2026-10-06). The pipeline
 # runs on a Claude subscription, so nothing is billed per token. These only turn token counts into
@@ -214,6 +214,14 @@ def process(doc_id, stub_dir=None, loop_cap=1.50, model=None):
     if claims and len(skipped) / len(claims) > MISSING_VERDICT_LIMIT and not strong:
         raise NeedsStrongerModel(f"fact-checker gave no verdict for {len(skipped)} of {len(claims)} claims")
 
+    # Coverage stop (default model only, never for canned stub output): publishing a page that covers
+    # a sliver of the meeting is worse than stopping and asking. The agents' files stay in data/work.
+    if not stub_dir and not strong:
+        cov = coverage(meta, api_items, decide(meta, claims, checks, summary, verdicts)["accepted"])
+        if cov and cov["voted"] >= COVERAGE_MIN_ITEMS and cov["rate"] < COVERAGE_MIN:
+            raise NeedsStrongerModel(f"only {cov['covered']} of {cov['voted']} voted items covered by an accepted fact "
+                                     f"({round(100 * cov['rate'])}%, under the {round(100 * COVERAGE_MIN)}% floor)")
+
     # 5. decide + publish
     usage_meta = dict({"at": _now(), "stub": bool(stub_dir),
                        "auth": "api-key" if os.environ.get("SHOWME_BARE") == "1" else "subscription"},
@@ -226,7 +234,8 @@ def finalize(doc_id, meta, claims, checks, summary, verdicts, usage_meta):
     """decide() + write report, published JSON and the metrics line. Free; no model calls."""
     wd = paths.work_dir(doc_id)
     result = decide(meta, claims, checks, summary, verdicts)
-    report = dict(result["report"], **usage_meta)
+    _, _, api_items = read_raw(doc_id)
+    report = dict(result["report"], coverage=coverage(meta, api_items, result["accepted"]), **usage_meta)
     _dump(os.path.join(wd, "report.json"), dict(result, report=report))
     _dump(os.path.join(paths.PUBLISHED, f"{doc_id}.json"), {
         "meta": meta, "headline": result["headline"], "generated_at": report["at"],

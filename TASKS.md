@@ -106,28 +106,16 @@ Done when:
 - [ ] Labelled "From the city's vote record" so readers can tell it from AI text
 - [ ] Offline test checks the 260919 roll call renders with 12 Ayes and Robinson excused
 
-### T-8: Coverage metric from the city's own record, and a "too few facts" stop
+### T-10: Give the headline its own claim list
 Status: Ready
-Owns: pipeline/verify.py (new `coverage()`); the report fields built in pipeline/run.py `finalize()`; pipeline/site.py index stats; one new stop condition in `process()`; tests/test_coverage.py (new)
+Owns: schemas/summarizer.json; .claude/agents/summarizer.md; pipeline/verify.py `decide()` headline rule; pipeline/run.py (the headline entry sent to the fact-checker); tests/test_verify_fixes.py HeadlineTests
 Blocked by: none
-Uses plan usage: no
-Why: The pass rate says how much of what was extracted survived, not how much of the meeting was covered. The Sonnet comparison (docs/MODEL-COMPARISON.md) produced 7 facts from a meeting with 29 recorded votes and nothing in the pipeline noticed.
+Uses plan usage: yes (one real run to see the summarizer return the field; give the heads-up first)
+Why: The headline now falls back to a plain title if any claim the summary cited was rejected, which on a long meeting is nearly always. The summarizer should say which claims the headline relies on.
 Done when:
-- [ ] `coverage` = share of API items with a recorded pass/fail (minutes only) that have at least one accepted fact; stored in report.json and metrics.jsonl and shown on the index next to the pass rate
-- [ ] Offline test: Opus's saved facts give 19 of 29, Sonnet's give 4 of 29 (fixtures copied into tests/fixtures/)
-- [ ] On the default model, coverage under a threshold written in verify.py (suggest 40%) stops the document with `this may need Opus: only N of M voted items covered`; under an explicit Opus run it only reports
-- [ ] The threshold is not lowered to make a run pass (CLAUDE.md "Never")
-
-### T-9: Extractor prompt for coverage, tested on Sonnet
-Status: Ready
-Owns: .claude/agents/extractor.md
-Blocked by: T-8 (to measure the result)
-Uses plan usage: yes (one real run, ~60-75k tokens; give the heads-up first)
-Why: Sonnet read "precision matters far more than coverage" as "write few facts". Opus did not.
-Done when:
-- [ ] The prompt asks for one fact per voted item and per money item, not a sample, while keeping the quote and number rules
-- [ ] One Sonnet run on kc-19561-minutes into experiments/ (not the published page) reaches coverage within 10 points of Opus's 19/29 with a claim pass rate no worse than 80%, or the ticket reports it didn't and recommends the extractor-only Opus option (ask the user first)
-- [ ] The result is added to docs/MODEL-COMPARISON.md
+- [ ] The summarizer returns `headline_claim_ids`; the headline is published only if the checker marks it FAITHFUL against those claims and all of them were accepted
+- [ ] Offline test: a rejected claim that the headline does not cite no longer costs the headline; one it does cite still does
+- [ ] A saved run with no `headline_claim_ids` keeps the conservative rule
 
 ## In progress
 
@@ -135,3 +123,5 @@ Done when:
 
 ## Done
 - T-0: Scaffold: KC Legistar ingester with offline fixture, three pipeline agents, code checks, site builder, check script + Stop hook (2026-10-29)
+- T-8: Coverage metric from the city's own vote record, plus a "this may need Opus: only N of M voted items covered" stop (floor 40%, 5+ votes); tests pin Opus 19/29, Sonnet first prompt 4/29, Sonnet coverage prompt 26/29 (2026-10-29)
+- T-9: Extractor prompt asks for one fact per voted or money item. One Sonnet 5.5 run on kc-19561-minutes: 60 facts, 55 pass, coverage 26/29, all 42 vote facts match the city's record. Found and fixed a first-occurrence flaw in the matter-block check on the way (docs/MODEL-COMPARISON.md) (2026-10-29)

@@ -1,0 +1,71 @@
+{
+  "headline": "Council passes two sewer bond ordinances and several spending measures",
+  "sentences": [
+    {
+      "text": "The council passed Ordinances 260895 and 260896. Each one allows the city to issue up to $100,000,000 in Sanitary Sewer System Revenue Bonds (a way for the city to borrow money).",
+      "claim_ids": [
+        "c10",
+        "c11",
+        "c12",
+        "c13"
+      ]
+    },
+    {
+      "text": "The council adopted a changed version of Resolution 260885. It tells the City Manager to find up to $15,000,000.00 in City funds for the 63rd & Prospect Development.",
+      "claim_ids": [
+        "c2",
+        "c3"
+      ]
+    },
+    {
+      "text": "Ordinance 260906 passed and adds $2,000,000.00 for the Blue Hills Townhomes project. Ordinance 260905 also passed and sets up a one-year $1,000,000.00 agreement with the Mid America Assistance Coalition to run the Water Services Department's Low-Income Assistance Program.",
+      "claim_ids": [
+        "c24",
+        "c25",
+        "c26",
+        "c27"
+      ]
+    },
+    {
+      "text": "Ordinance 260920 passed and allows up to $1,100,000.00 for audio and video upgrades at City Hall. Councilmember Willett voted no.",
+      "claim_ids": [
+        "c18",
+        "c19",
+        "c20"
+      ]
+    },
+    {
+      "text": "Ordinance 260918 passed and moves $485,424.00 from the Marijuana Sales Tax Fund to the Extreme Weather Program. Ordinance 260921 passed and puts $50,000.00 toward the Vacant Property Education Campaign.",
+      "claim_ids": [
+        "c15",
+        "c16",
+        "c21",
+        "c22"
+      ]
+    },
+    {
+      "text": "Ordinance 260913 passed and accepts a $486,054.54 federal Assistance to Firefighters Grant, with a City match of $48,605.46.",
+      "claim_ids": [
+        "c28",
+        "c29"
+      ]
+    },
+    {
+      "text": "The council adopted Resolution 260886, which sets its priorities for Public Safety Sales Tax funds; Councilmembers Willett and Rogers voted no. It also adopted Resolution 260887 on restoring Blue River Road and Resolution 260915, a Strategic Plan for the Hickman Mills area.",
+      "claim_ids": [
+        "c4",
+        "c5",
+        "c6",
+        "c7"
+      ]
+    },
+    {
+      "text": "Ordinance 260941, which would allow up to $572,500,000.00 in taxable industrial revenue bonds for The Constant Company, LLC at 3420 North Arlington Avenue, was sent to the Finance, Governance and Public Safety Committee, due back on 10/27/2026. A plan to give up sidewalk space in the Country Club Plaza area (260445) was held for two weeks.",
+      "claim_ids": [
+        "c35",
+        "c36",
+        "c1"
+      ]
+    }
+  ]
+}
