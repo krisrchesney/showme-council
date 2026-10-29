@@ -2,7 +2,7 @@
 
 The shared backlog. Agents coordinate through this file and git. Take one Ready
 ticket, move it to In progress with your branch name, and touch only what it Owns.
-"Paid run" means verifying it calls Claude, which uses the subscription's usage; ask the user first (CLAUDE.md).
+"Uses plan usage" means verifying it calls Claude on the subscription; give the heads-up first (CLAUDE.md).
 
 Template:
 
@@ -10,7 +10,7 @@ Template:
     Status: Ready
     Owns: <files / functions this ticket may change>
     Blocked by: none | T-x
-    Paid run: no | yes (~$ estimate)
+    Uses plan usage: no | yes (~tokens)
     Why: <one line>
     Done when:
     - [ ] <checkable without asking anyone>
@@ -21,7 +21,10 @@ Template:
 Status: Ready (needs the user's OK: GitHub repo, CLAUDE_CODE_OAUTH_TOKEN secret, Pages)
 Owns: .github/workflows/nightly.yml; DESIGN.md "State between nights" paragraph
 Blocked by: none
-Paid run: yes, subscription usage (~75k tokens per document, ~5 documents a week; no API bill)
+Uses plan usage: yes (~75k tokens per document, ~5 documents a week)
+Decision first: confirm the auth with the user before building. A subscription token
+(`claude setup-token`; draws on the same plan usage) is the current choice. An API key would bill per token;
+never pick it without the user.
 Why: The workflow is written but has no cron trigger, no state commit-back and no Pages deploy.
 Done when:
 - [ ] `schedule: cron` added (e.g. 07:30 UTC = 2:30 AM CDT), plus `workflow_dispatch`
@@ -37,7 +40,7 @@ Done when:
 Status: Ready
 Owns: .github/workflows/check.yml (new); README.md badge line
 Blocked by: none
-Paid run: no
+Uses plan usage: no
 Why: The Stop hook guards local sessions; CI should guard pushes and PRs the same way.
 Done when:
 - [ ] Workflow runs `pip install -r requirements.txt` then `python scripts/check.py` on push and pull_request, Python 3.12
@@ -48,7 +51,7 @@ Done when:
 Status: Ready
 Owns: pipeline/verify.py `code_checks()` (new `agenda_tense` check); tests/test_verify.py new class; tests/fixtures/kansascity/ agenda text (via scripts/refresh_fixture.py --agenda)
 Blocked by: none
-Paid run: no
+Uses plan usage: no
 Why: An agenda says what's planned. A claim like "passed" on an agenda is wrong even if the quote exists.
 Done when:
 - [ ] For `kind == "agenda"`, a claim with outcome passed/adopted/failed, or "passed"/"approved" in the statement, is rejected with reason `agenda_states_outcome`
@@ -59,7 +62,7 @@ Done when:
 Status: Ready
 Owns: pipeline/sources/__init__.py `get_source`; `COMO_BODIES` constant in pipeline/sources/legistar.py; tests/fixtures/gocolumbiamo/ (new); tests/test_columbia.py (new)
 Blocked by: none
-Paid run: no (the fixture is free to download)
+Uses plan usage: no (the fixture is free to download)
 Why: Proves the adapter isn't hard-wired to Kansas City. Same API, client `gocolumbiamo`.
 Done when:
 - [ ] `get_source("columbia")` returns a LegistarSource with prefix `como` and City Council bodies
@@ -70,7 +73,7 @@ Done when:
 Status: Ready
 Owns: pipeline/canary.py (new); one call in pipeline/run.py `process()` after the fact-checker stage; tests/test_canary.py (new)
 Blocked by: none
-Paid run: yes (adds ~10% to the fact-checker stage)
+Uses plan usage: yes (adds ~10% to the fact-checker stage)
 Why: The pass rate says how much survives; it doesn't say whether the checker would catch a bad claim. Planted errors do.
 Done when:
 - [ ] For each document, 2 accepted-looking claims are copied and changed in ways code can't catch (outcome word flipped, body name swapped) and marked `canary: true`
@@ -82,7 +85,7 @@ Done when:
 Status: Ready
 Owns: pipeline/sources/civicplus.py (new); tests/fixtures/stcharles/ (new); tests/test_civicplus.py (new); one line in pipeline/sources/__init__.py
 Blocked by: T-4 (both add a line to `get_source`)
-Paid run: no
+Uses plan usage: no
 Why: A source with no API. County Council agendas list each purchase as vendor / amount / term.
 Done when:
 - [ ] Lists County Council (catID=1) documents via POST /AgendaCenter/UpdateCategoryList and downloads /AgendaCenter/ViewFile/Agenda/_MMDDYYYY-ID
@@ -94,7 +97,7 @@ Done when:
 Status: Ready
 Owns: pipeline/site.py `doc_page()`; the `data/published/<doc>.json` dict built in pipeline/run.py `process()` (add a `votes` field)
 Blocked by: none
-Paid run: no
+Uses plan usage: no
 Why: Per-member votes come straight from the API: exact, free, and no model involved.
 Done when:
 - [ ] For each accepted vote claim with a matter number, the page shows who voted Aye/Nay/Excused, taken from api_items, not from agent output

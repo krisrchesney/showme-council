@@ -35,6 +35,6 @@ jobs:
           CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           # No SHOWME_BARE: bare mode ignores OAuth. Don't also set ANTHROPIC_API_KEY,
           # it outranks the token and would switch billing to the API.
-        run: python -m pipeline.run nightly --days 3 --max-docs 4 --max-usd 4.00
+        run: python -m pipeline.run nightly --days 3 --max-docs 4 --loop-cap 4.00
       # T-1: commit data/state.json, data/published/, data/metrics.jsonl; then
       # actions/upload-pages-artifact (path: site) + actions/deploy-pages.

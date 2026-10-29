@@ -44,14 +44,14 @@ on its own.
 | Fact-checker | `.claude/agents/fact-checker.md` | Gets the full source, the claims, the code results and the sentences. Assumes the others made mistakes. |
 | Decide | `pipeline/verify.py: decide()` | Combines the code checks and the verdicts. It's the only code that writes `data/published/`. |
 | Site | `pipeline/site.py` | Static HTML: each fact links to its quote, page and the official PDF, and every page shows its own pass/reject counts. |
-| Orchestrator | `pipeline/run.py` | `ingest`, `estimate`, `process`, `nightly`, `build-site`. Budget caps live here. |
+| Orchestrator | `pipeline/run.py` | `ingest`, `estimate`, `process`, `redecide`, `nightly`, `build-site`. Runaway-loop caps live here. |
 
 Each agent stage is one headless Claude Code call (`pipeline/agents.py`):
 
 ```
 claude -p "<task>" --agents <built from .claude/agents/*.md> --agent extractor
        --output-format json --json-schema schemas/extractor.json
-       --tools "" --max-budget-usd <what's left> --no-session-persistence
+       --tools "" --max-budget-usd <loop cap> --no-session-persistence
        --strict-mcp-config --disable-slash-commands --effort medium
 ```
 
@@ -117,10 +117,10 @@ Checked against the current docs (code.claude.com/docs/en/github-actions and
 | | GitHub Actions cron (recommended) | Windows Task Scheduler on this PC |
 |---|---|---|
 | Runs when the PC is off | Yes | No |
-| Auth (chosen: **subscription**) | Repo secret `CLAUDE_CODE_OAUTH_TOKEN`, a long-lived token from `claude setup-token`, billed to your Claude plan | `claude auth login` with your Claude plan |
+| Auth (chosen: **subscription**) | Repo secret `CLAUDE_CODE_OAUTH_TOKEN`, a long-lived token from `claude setup-token`; draws on your Claude plan's usage | `claude auth login` with your Claude plan |
 | Reproducible | Same flags every run; hooks are skipped via `SHOWME_PIPELINE=1`, MCP via `--strict-mcp-config`. `--bare` is **not** used: bare mode never reads OAuth, so it only works with an API key | Depends on local state |
 | Publishing | `actions/deploy-pages` in the same job | Needs a `git push` from this PC |
-| Cost of the runner | Free for a public repo | Free |
+| Runner minutes | Free for a public repo | n/a |
 | Gotchas | Cron runs only from the default branch; GitHub turns schedules off after 60 days without repo activity (the nightly data commit counts as activity); cron times are UTC and can start late | PC asleep = missed night |
 
 Why the workflow calls the `claude` CLI directly instead of `anthropics/claude-code-action`:
@@ -128,7 +128,7 @@ the action runs one prompt, but this pipeline is three schema-checked calls with
 code in between, and Python owns that loop. The action fits "do this task in my
 repo", not "call a model three times inside my program".
 
-**Auth decision (2026-10-29): subscription, not API billing.** Locally the CLI
+**Auth decision (2026-10-29): subscription, not API key.** (An API key bills per token. T-1 asks you to confirm this choice again before the workflow is built; an API key is never picked without you.) Locally the CLI
 is logged in with your plan. In Actions, run `claude setup-token` once on this PC
 and store its output under repo Settings → Secrets and variables → Actions →
 New repository secret as `CLAUDE_CODE_OAUTH_TOKEN`. The workflow reads it only as
@@ -146,57 +146,52 @@ works for anyone forking: set `ANTHROPIC_API_KEY` and `SHOWME_BARE=1`. `.github/
 `data/raw/`, `data/work/` and `site/` are rebuilt each night and are gitignored.
 In Actions, the job commits the record back (T-1 decides main vs. a `data` branch).
 
-## Cost per night
+## Usage per night
 
-**With a subscription there is no per-token bill.** Runs draw on your plan's usage
-limits, the same pool your interactive Claude Code sessions use. So the real
-constraint is usage headroom, not dollars:
-- Tokens per document (below) are what each night takes from the plan: about
-  75k per document (~56k in, ~18k out incl. thinking), ~5 documents a week, so
-  roughly 375k tokens a week. `estimate` prints both tokens and API-price dollars.
-- Schedule the run at night (07:30 UTC) so it doesn't compete with daytime sessions.
-- If a run hits a usage limit, the CLI returns an error, the document is marked
-  `error`, and it retries the next night (`MAX_TRIES = 3`). Nothing half-finished
-  is published.
-- `--max-budget-usd` and the per-document and per-night caps stay. Under a
-  subscription they act on Claude Code's *estimated* cost, so they still stop a
-  runaway loop. The `total_cost_usd` in `report.json` is the API-price equivalent,
-  not a charge.
+This runs on your Claude Max subscription. Nothing is billed per token, so the thing to
+watch is how much of the plan's usage window a night takes. Every run records, per stage
+and in total: tokens in and out, turns, model, and wall time (`report.json` →
+`usage`; the front page of the site shows pass rates, not usage).
 
-The API-price equivalent is still useful as a size measure, and it's what an
-API-key fork would pay. Prices: Opus 5.5 $4 / $20 per million input / output
-tokens; Sonnet 5.5 $2 / $10; Haiku 5.5 $0.10 / $0.50. Agents default to **Sonnet 5.5**
-(`model:` in each `.md`; see "Model policy").
+**Measured, one real run** (KC Council minutes of 2026-10-22, Opus 5.5, before the
+model policy changed to Sonnet): 62.5k tokens in and 13.7k out over three calls
+(extractor, summarizer, fact-checker; 2 turns each), about 2 minutes of wall time
+(60 s, 21 s, 35 s). `python -m pipeline.run estimate <doc>` had predicted 55k in and
+17.5k out: within 5% on total tokens (input 12% low, output 28% high). No Sonnet run has
+been measured yet.
 
-One KC Council minutes document (the 2026-10-22 fixture: 28 pages, about 12.6k
-tokens of text). `python -m pipeline.run estimate <doc>` gives:
+**Expected per night:** about 5 new documents a week with the chosen bodies (Council
+agenda and minutes, committee agendas), or roughly 75k tokens per document and
+**375k tokens a week**, averaging a bit over 50k a night. Committee agendas are shorter
+than the fixture, so that is on the high side. The plan weights models differently, and
+I don't know the weights, so expect a Sonnet night to take less of the window than an
+Opus night but measure it before relying on that.
 
-| Stage | In (tokens) | Out incl. thinking | Opus 5.5 (the estimate for an escalated run) |
-|---|---|---|---|
-| extractor | ~19k | ~9k | $0.26 |
-| summarizer | ~10k | ~2.5k | $0.09 |
-| fact-checker | ~27k | ~6k | $0.23 |
-| **per document** | | | **≈ $0.57** (Sonnet 5.5: ≈ $0.29) |
+**The real limit is the plan's usage window,** the same pool your interactive Claude Code
+sessions draw on. So:
+- The nightly run is scheduled for 07:30 UTC (2:30 AM Central) so it doesn't compete
+  with daytime sessions.
+- If a run hits the limit, the CLI returns an error, the document is marked `error`, and
+  it is retried the next night (`MAX_TRIES = 3`). Nothing half-finished is published.
+- There is no dollar budget and no approval step. A heads-up before the first real run
+  in a session (model, expected tokens) is all CLAUDE.md asks for.
 
-**Measured, one real run** (Opus 5.5, before the model policy changed): 62.5k tokens in and
-13.7k out across the three calls, about 2 minutes, $0.77 API-equivalent: extractor $0.34
-(60 s), summarizer $0.09, fact-checker $0.34. The estimate said 55k in / 17.5k out / $0.57,
-so it was low on dollars (~35%), mostly because each call writes the document into the
-prompt cache. No Sonnet run has been measured yet; the Sonnet figure above is the estimate.
+**API-equivalent figures.** Claude Code also reports what it estimates the same tokens
+would cost at API rates. The pipeline stores that as `api_equiv_usd`, only so models and
+runs can be compared on one number. It's an estimate, not a charge. Rates used by
+`estimate`, USD per million tokens in / out: Opus 5.5 4 / 20, Sonnet 5.5 2 / 10,
+Haiku 5.5 0.10 / 0.50. For the measured run, Claude Code reported 0.77 API-equivalent
+units against the 0.57 `estimate` gives, because each call writes the document into the
+prompt cache. At those rates one document on Sonnet 5.5 comes to about half the Opus
+figure for the same tokens (`estimate --model claude-sonnet-5-5` prints 0.29); that is an
+estimate, not a measurement.
 
-Volume with the chosen bodies (Council + 3 standing committees): about 5 new
-documents a week (Council agenda and minutes, committee agendas). That's
-**about $0.20 a night, or $6 a month, in API-price terms on Sonnet 5.5** (double that if
-every document were escalated to Opus 5.5), and $0 billed on the subscription. Haiku 5.5
-would be cheaper still and is untested for quality. Committee agendas are shorter than the fixture, so these numbers are
-on the high side. The first real runs replace them: every run records Claude
-Code's reported `total_cost_usd` per stage in `report.json`.
-
-Hard caps: `--max-budget-usd` on every call (the stage gets what's left of the
-document's cap), `$1.50` per document, `$4.00` per night (`nightly --max-usd`).
-Hitting the nightly cap leaves the remaining documents for tomorrow. GitHub runner
-minutes: free for a public repo. Actual dollars billed under the chosen setup: $0
-beyond the existing Claude plan.
+**Runaway-loop protection.** Each agent call gets `--max-budget-usd` set to what is left
+of the document's cap, and `nightly --loop-cap` bounds the whole night (defaults 1.50 per
+document and 4.00 per night). These are measured in API-equivalent units because that is
+what the CLI can enforce. They are tripwires set several times above a normal run
+(0.77 measured), so they stop a stuck loop and are not a spending limit. This CLI has no
+`--max-turns` flag. The agents have no tools, so a call is 1 to 2 turns anyway.
 
 ## Model policy
 

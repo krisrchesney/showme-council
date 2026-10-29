@@ -25,7 +25,7 @@ class AgentDefinitionTests(unittest.TestCase):
         for s in ("extractor", "summarizer", "fact_checker"):
             self.assertEqual(agents.load_schema(s)["type"], "object")
 
-    def test_command_has_no_tools_and_a_budget_cap(self):
+    def test_command_has_no_tools_and_a_loop_cap(self):
         with mock.patch.dict(os.environ, {"SHOWME_BARE": ""}):
             cmd = agents.build_command("extractor", "extractor", "agents.json", 0.75)
         self.assertEqual(cmd[cmd.index("--tools") + 1], "")
@@ -63,7 +63,7 @@ class AgentDefinitionTests(unittest.TestCase):
         stub = os.path.join(paths.FIXTURES, "kansascity", "stub")
         with mock.patch("subprocess.run", side_effect=AssertionError("called claude")):
             out, usage = agents.run_agent("extractor", "extractor", {}, tempfile.mkdtemp(), 1, stub_dir=stub)
-        self.assertEqual(usage["cost_usd"], 0.0)
+        self.assertEqual((usage["api_equiv_usd"], usage["tokens_in"]), (0.0, 0))
         self.assertTrue(out["claims"])
 
 

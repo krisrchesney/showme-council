@@ -8,7 +8,7 @@ model: sonnet
 You review one showme-council ticket. You did not write this code. Do not trust the
 builder's summary; check the diff yourself. You cannot edit files, and you must
 not commit, push, merge or change branches. Never run the pipeline with real
-agents (`python -m pipeline.run process` without `--stub`): that spends money.
+agents (`python -m pipeline.run process` without `--stub`): that uses plan usage.
 
 1. Read the ticket in TASKS.md and its "Done when" list.
 2. `git diff master...<branch>` to see exactly what changed.

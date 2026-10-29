@@ -20,7 +20,7 @@ from pipeline.sources.base import DocRef, Source
 BASE = "https://webapi.legistar.com/v1"
 
 # Full Council plus the three standing committees: where votes and spending happen.
-# Boards and commissions are skipped to keep nightly cost predictable (see DESIGN.md "Cost").
+# Boards and commissions are skipped to keep nightly usage predictable (see DESIGN.md "Usage per night").
 KC_BODIES = {
     "Council",
     "Finance, Governance and Public Safety Committee",

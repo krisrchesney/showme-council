@@ -115,9 +115,9 @@ class EscalationTests(TempDataTest):
                 process(DOC_ID, model=ESCALATION_MODEL)
 
     def test_nightly_parks_the_document_instead_of_retrying_it(self):
-        nightly("kansascity", days=10, max_docs=4, max_usd=4.0, fixture=True, stub_dir=self.stub, today=date(2026, 10, 29))
+        nightly("kansascity", days=10, max_docs=4, loop_cap=4.0, fixture=True, stub_dir=self.stub, today=date(2026, 10, 29))
         self.assertEqual(load_state()["docs"][DOC_ID]["status"], "needs_model")
-        nightly("kansascity", days=10, max_docs=4, max_usd=4.0, fixture=True, stub_dir=self.stub, today=date(2026, 10, 29))
+        nightly("kansascity", days=10, max_docs=4, loop_cap=4.0, fixture=True, stub_dir=self.stub, today=date(2026, 10, 29))
         self.assertEqual(load_state()["docs"][DOC_ID]["tries"], 1)   # not retried on the same model
 
     def test_redecide_reuses_saved_agent_output_without_calling_claude(self):
