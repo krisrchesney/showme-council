@@ -10,9 +10,10 @@ people and for the pipeline). Each call is:
 with the document payload on stdin. No tools: the agents only read what they're given
 and return JSON, so a prompt injection in a PDF has nothing to act with.
 
-Auth: locally, whatever `claude` is logged in with (subscription or API key).
-In CI set SHOWME_BARE=1 and ANTHROPIC_API_KEY; --bare skips hooks, CLAUDE.md and
-OAuth, so every machine gets the same run.
+Auth (DESIGN.md "Auth decision"): the Claude subscription. Locally that's the
+`claude auth login` session; in CI it's CLAUDE_CODE_OAUTH_TOKEN from `claude setup-token`
+(valid one year). An API-key fork can set ANTHROPIC_API_KEY and SHOWME_BARE=1 instead;
+--bare never reads OAuth, so it is API-key only.
 """
 
 import json
@@ -59,6 +60,8 @@ def build_command(name, schema, agents_file, max_usd):
            "--no-session-persistence", "--strict-mcp-config", "--disable-slash-commands",
            "--effort", os.environ.get("SHOWME_EFFORT", "medium")]
     if os.environ.get("SHOWME_BARE") == "1":
+        if not os.environ.get("ANTHROPIC_API_KEY"):
+            raise RuntimeError("SHOWME_BARE=1 needs ANTHROPIC_API_KEY: bare mode ignores subscription logins")
         cmd.insert(1, "--bare")
     return cmd
 
@@ -76,6 +79,11 @@ def clean_env():
             del env[k]
     if inside_host:
         env.pop("ANTHROPIC_BASE_URL", None)
+    if env.get("SHOWME_BARE") != "1":
+        # Subscription mode: an API key or bearer token outranks the subscription login and
+        # would silently move the run to API billing. Only SHOWME_BARE=1 opts into that.
+        env.pop("ANTHROPIC_API_KEY", None)
+        env.pop("ANTHROPIC_AUTH_TOKEN", None)
     return env
 
 

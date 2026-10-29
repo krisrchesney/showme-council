@@ -20,8 +20,10 @@ stages, handoff files, scoring and cost. Python 3.12; the only dependency is
   reviewer caught, so it can be added to "Lessons" below.
 
 ## Spending money
-- Any run without `--stub` calls Claude and costs money (or plan usage). Run
-  `python -m pipeline.run estimate <doc>` and get the user's OK in chat first.
+- Any run without `--stub` calls Claude on the user's subscription and uses plan
+  usage. Run `python -m pipeline.run estimate <doc>` and get the user's OK in chat first.
+- Auth is the subscription (`claude auth login` locally, `CLAUDE_CODE_OAUTH_TOKEN` in CI).
+  Don't switch to an API key or add `--bare` without the user asking.
 - Tests and reviews use `--fixture` and `--stub tests/fixtures/kansascity/stub` only.
 - Keep `--max-budget-usd` on every agent call and the per-document / per-night caps in run.py.
 

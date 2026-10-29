@@ -90,7 +90,10 @@ def estimate(doc_id, model="claude-opus-5-5"):
     pin, pout = PRICES[model]
     rows = {k: round((i * pin + o * pout) / 1e6, 3) for k, (i, o) in stages.items()}
     rows["total"] = round(sum(rows.values()), 2)
+    rows["note"] = "dollars = API-price equivalent; on a subscription this is plan usage, not a bill"
     rows["source_tokens"] = int(src_tok)
+    rows["tokens_in"] = int(sum(i for i, _ in stages.values()))
+    rows["tokens_out"] = int(sum(o for _, o in stages.values()))
     return rows
 
 

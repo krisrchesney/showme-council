@@ -35,8 +35,29 @@ class AgentDefinitionTests(unittest.TestCase):
         self.assertNotIn("--bare", cmd)
 
     def test_ci_mode_adds_bare(self):
-        with mock.patch.dict(os.environ, {"SHOWME_BARE": "1"}):
+        with mock.patch.dict(os.environ, {"SHOWME_BARE": "1", "ANTHROPIC_API_KEY": "test-placeholder"}):
             self.assertIn("--bare", agents.build_command("summarizer", "summarizer", "a.json", 1))
+
+    def test_bare_without_api_key_fails_loudly(self):
+        # Subscription auth can't use --bare; a silent fallback would fail mid-night instead.
+        env = {k: v for k, v in os.environ.items() if k != "ANTHROPIC_API_KEY"}
+        env["SHOWME_BARE"] = "1"
+        with mock.patch.dict(os.environ, env, clear=True):
+            with self.assertRaises(RuntimeError):
+                agents.build_command("summarizer", "summarizer", "a.json", 1)
+
+    def test_subscription_token_survives_env_cleaning(self):
+        with mock.patch.dict(os.environ, {"CLAUDE_CODE_OAUTH_TOKEN": "t", "CLAUDE_CODE_SESSION_ID": "x", "CLAUDECODE": "1"}):
+            env = agents.clean_env()
+        self.assertEqual(env.get("CLAUDE_CODE_OAUTH_TOKEN"), "t")
+        self.assertNotIn("CLAUDE_CODE_SESSION_ID", env)
+        self.assertNotIn("CLAUDECODE", env)
+
+    def test_stray_api_key_cannot_switch_billing_in_subscription_mode(self):
+        with mock.patch.dict(os.environ, {"ANTHROPIC_API_KEY": "x", "SHOWME_BARE": ""}):
+            self.assertNotIn("ANTHROPIC_API_KEY", agents.clean_env())
+        with mock.patch.dict(os.environ, {"ANTHROPIC_API_KEY": "x", "SHOWME_BARE": "1"}):
+            self.assertEqual(agents.clean_env()["ANTHROPIC_API_KEY"], "x")
 
     def test_stub_mode_never_calls_claude(self):
         stub = os.path.join(paths.FIXTURES, "kansascity", "stub")
