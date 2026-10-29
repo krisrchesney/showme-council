@@ -23,7 +23,7 @@ import json
 import os
 import sys
 
-from pipeline import paths
+from pipeline import canary, paths
 from pipeline.agents import AgentOutputError, find_claude, login_instructions, run_agent
 from pipeline.site import build_site
 from pipeline.sources import get_source
@@ -155,7 +155,7 @@ class NeedsStrongerModel(RuntimeError):
 MISSING_VERDICT_LIMIT = 0.10   # fact-checker skipped >10% of claims -> it could not handle the document
 
 
-def process(doc_id, stub_dir=None, loop_cap=1.50, model=None):
+def process(doc_id, stub_dir=None, loop_cap=1.50, model=None, canaries=True):
     """Run one document through all stages. `loop_cap` is a runaway-loop tripwire in API-equivalent
     units (what Claude Code estimates the tokens would cost at API rates), not a spending limit."""
     meta, text, api_items = read_raw(doc_id)
@@ -203,11 +203,24 @@ def process(doc_id, stub_dir=None, loop_cap=1.50, model=None):
     sentences = [{"index": i, "text": s["text"], "claim_ids": s["claim_ids"]} for i, s in enumerate(summary["sentences"])]
     cited = sorted({cid for s in summary["sentences"] for cid in s["claim_ids"]})
     sentences.append({"index": len(sentences), "text": summary.get("headline", ""), "claim_ids": cited, "is_headline": True})
-    verdicts = call("fact-checker", "fact_checker", {
+    # Planted errors ride along in the same call (see pipeline/canary.py). Never for stub output.
+    fakes, fake_info = [], {}
+    if canaries and claims and not stub_dir:
+        trusted = [c for c in claims if checks[c["id"]]["passed"]]
+        fakes, fake_info = canary.make_canaries(meta, trusted, api_items, canary.next_number(claims))
+    fake_checks = {c["id"]: code_checks(c, pages, meta, api_items) for c in fakes}
+    sent_checks = dict(checks, **fake_checks)
+    verdicts_all = call("fact-checker", "fact_checker", {
         "meta": meta, "source": text,
-        "claims": [dict(c, code_checks={k: checks[c["id"]][k] for k in ("quote_match", "numbers_missing_from_quote", "matter", "api")}) for c in claims],
+        "claims": [dict(c, code_checks={k: sent_checks[c["id"]][k] for k in ("quote_match", "numbers_missing_from_quote", "matter", "api")})
+                   for c in claims + fakes],
         "sentences": sentences,
     }) if claims else {"claims": [], "sentences": []}
+    # The fakes' verdicts are split off here: decide() and everything published only ever see real claims.
+    verdicts = dict(verdicts_all, claims=[v for v in verdicts_all.get("claims", []) if v["id"] not in fake_info])
+    canary_rows = canary.score(fake_info, fakes, {v["id"]: v for v in verdicts_all.get("claims", [])}, fake_checks)
+    if canary_rows:
+        _dump(os.path.join(wd, "canary.json"), {"rows": canary_rows, "summary": canary.summary(canary_rows)})
     _dump(os.path.join(wd, "verdicts.json"), verdicts)
     judged = {v["id"] for v in verdicts.get("claims", [])}
     skipped = [c["id"] for c in claims if c["id"] not in judged]
@@ -226,6 +239,8 @@ def process(doc_id, stub_dir=None, loop_cap=1.50, model=None):
     usage_meta = dict({"at": _now(), "stub": bool(stub_dir),
                        "auth": "api-key" if os.environ.get("SHOWME_BARE") == "1" else "subscription"},
                       **summarize_usage(stages))
+    if canary_rows:
+        usage_meta["canary"] = canary.summary(canary_rows)
     _dump(os.path.join(wd, "usage_meta.json"), usage_meta)
     return finalize(doc_id, meta, claims, checks, summary, verdicts, usage_meta)
 
@@ -297,6 +312,8 @@ def report_markdown(doc_id):
         "- voted-item coverage: " + (f"{cov['covered']} of {cov['voted']} ({pct(cov['rate'])})" if cov else "n/a"),
         f"- accepted facts the city's record contradicts: {contradicted}",
         f"- fact-checker flags: {flags} of {len(verdicts)}",
+        *([f"- planted errors the fact-checker caught: {r['canary']['checker_caught']} of {r['canary']['total']} "
+           f"(code alone would have caught {r['canary']['code_caught']})"] if r.get("canary") else []),
         f"- summary sentences published: {r['sentences_published']} of {r['sentences_written']}",
         f"- models: {', '.join(r['models']) or 'none'}; auth: {r.get('auth')}",
         f"- usage: {u['tokens_in']:,} tokens in, {u['tokens_out']:,} out, {u['turns']} turns, {u['seconds']:.0f} s",
@@ -306,6 +323,43 @@ def report_markdown(doc_id):
     if r.get("reject_reasons"):
         lines.append("- rejected because: " + ", ".join(f"{k} x{n}" for k, n in r["reject_reasons"].items()))
     return "\n".join(lines)
+
+
+def canary_eval(doc_id, n=4, model=None, loop_cap=1.50):
+    """Run ONLY the fact-checker on a saved run, with planted errors added, and report what it caught.
+
+    Reads the document and the saved extractor/summarizer output from the current data dir, so it costs one
+    fact-checker call (not a whole run). Writes <work>/canary-eval/ and changes nothing published."""
+    meta, text, api_items = read_raw(doc_id)
+    pages = split_pages(text)
+    wd = paths.work_dir(doc_id)
+
+    def load(name):
+        with open(os.path.join(wd, name), encoding="utf-8") as f:
+            return json.load(f)
+    claims, summary = load("facts.json")["claims"], load("summary.json")
+    accepted = {c["id"] for c in load("report.json")["accepted"]}
+    trusted = [c for c in claims if c["id"] in accepted]
+    fakes, info = canary.make_canaries(meta, trusted, api_items, canary.next_number(claims), n=n)
+    if not fakes:
+        raise RuntimeError("no fake claims could be built from this run's accepted claims")
+    checks = {c["id"]: code_checks(c, pages, meta, api_items) for c in claims + fakes}
+    sentences = [{"index": i, "text": s["text"], "claim_ids": s["claim_ids"]} for i, s in enumerate(summary["sentences"])]
+    cited = sorted({cid for s in summary["sentences"] for cid in s["claim_ids"]})
+    sentences.append({"index": len(sentences), "text": summary.get("headline", ""), "claim_ids": cited, "is_headline": True})
+    payload = {"meta": meta, "source": text, "sentences": sentences,
+               "claims": [dict(c, code_checks={k: checks[c["id"]][k] for k in ("quote_match", "numbers_missing_from_quote", "matter", "api")})
+                          for c in claims + fakes]}
+    out_dir = os.path.join(wd, "canary-eval")
+    out, usage = run_agent("fact-checker", "fact_checker", payload, out_dir, loop_cap, model=model)
+    by_id = {v["id"]: v for v in out.get("claims", [])}
+    rows = canary.score(info, fakes, by_id, {c["id"]: checks[c["id"]] for c in fakes})
+    real = [by_id[c["id"]] for c in claims if c["id"] in by_id]
+    result = {"doc_id": doc_id, "rows": rows, "summary": canary.summary(rows),
+              "real_claims_flagged": [v["id"] for v in real if v["verdict"] != "SUPPORTED"], "real_claims": len(claims),
+              "usage": summarize_usage({"fact-checker": usage})["usage"], "models": usage.get("models")}
+    _dump(os.path.join(out_dir, "canary.json"), result)
+    return result
 
 
 def _mark(doc_id, status, error=None):
@@ -368,6 +422,7 @@ def main(argv=None):
                    help="runaway-loop tripwire in API-equivalent units; not a spending limit")
     p.add_argument("--model", choices=sorted(API_EQUIV_RATES),
                    help="override every agent model for this document (e.g. after a may-need-Opus stop)")
+    p.add_argument("--no-canaries", action="store_true", help="skip the planted-error claims in the fact-checker call")
     p = sub.add_parser("redecide")
     p.add_argument("doc_id")
     p = sub.add_parser("nightly")
@@ -379,6 +434,10 @@ def main(argv=None):
     p.add_argument("--fixture", action="store_true")
     p.add_argument("--stub")
     sub.add_parser("build-site")
+    p = sub.add_parser("canary-eval", help="run only the fact-checker on a saved run with planted errors added")
+    p.add_argument("doc_id")
+    p.add_argument("--n", type=int, default=4)
+    p.add_argument("--model", choices=sorted(API_EQUIV_RATES))
     p = sub.add_parser("report", help="markdown summary of one processed document (quality + tokens, turns, time)")
     p.add_argument("doc_id")
     sub.add_parser("claude-path", help="show which claude CLI the pipeline will use, and the exact login command")
@@ -390,7 +449,7 @@ def main(argv=None):
         print(json.dumps(estimate(a.doc_id, a.model), indent=2))
     elif a.cmd == "process":
         try:
-            rep = process(a.doc_id, stub_dir=a.stub, loop_cap=a.loop_cap, model=a.model)
+            rep = process(a.doc_id, stub_dir=a.stub, loop_cap=a.loop_cap, model=a.model, canaries=not a.no_canaries)
         except NeedsStrongerModel as e:
             _mark(a.doc_id, "needs_model", str(e))
             sys.exit(str(e))
@@ -400,6 +459,11 @@ def main(argv=None):
         print(json.dumps(redecide(a.doc_id), indent=2))
     elif a.cmd == "nightly":
         nightly(a.source, a.days, a.max_docs, a.loop_cap, a.fixture, a.stub)
+    elif a.cmd == "canary-eval":
+        res = canary_eval(a.doc_id, n=a.n, model=a.model)
+        print(json.dumps(res["summary"], indent=2))
+        u = res["usage"]
+        print(f"usage: {u['tokens_in']:,} tokens in, {u['tokens_out']:,} out, {u['turns']} turns, {u['seconds']:.0f} s")
     elif a.cmd == "report":
         print(report_markdown(a.doc_id))
     elif a.cmd == "claude-path":
