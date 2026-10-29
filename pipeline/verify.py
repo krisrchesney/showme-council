@@ -4,7 +4,12 @@ A claim is published only if it passes BOTH:
   1. code_checks()  - mechanical, deterministic, free:
        quote_found      the quote is in the source (exact after normalizing, or >= FUZZY_MIN similar)
        quote_length     at least MIN_QUOTE_CHARS, so "Passed" can't prove anything
-       numbers_in_quote every number in the statement / amount appears in the quote
+       numbers_in_quote every number in the statement / amount appears in the quote, except the
+                        claim's own matter number when matter_block confirms it
+       matter_block     the quote sits inside the source block of the agenda item whose matter
+                        number the claim names (blocks are located from the API's item titles).
+                        Needed because Legistar minutes print the number a few lines after the
+                        item's description, so a correct quote often can't contain it.
        api_agrees       for votes, the city's own API records the same outcome (when it has one)
   2. the fact-checker agent's verdict == SUPPORTED (reads the quote in context).
 
@@ -23,7 +28,9 @@ FUZZY_MIN = 0.92        # PDF text extraction mangles some spacing; below this i
 MIN_QUOTE_CHARS = 20
 
 _PAGE_RE = re.compile(r"^=== page (\d+) ===$", re.M)
-_NUM_RE = re.compile(r"\d[\d,]*(?:\.\d+)?")
+# A number glued to letters ("IAP2", "CD2") is part of a name, not a figure to check.
+_NUM_RE = re.compile(r"(?<![A-Za-z])\d[\d,]*(?:\.\d+)?")
+TITLE_PROBE = 50          # chars of an API item title searched for in the source
 _TRANS = str.maketrans({"‘": "'", "’": "'", "“": '"', "”": '"',
                         "–": "-", "—": "-", " ": " "})
 
@@ -32,6 +39,8 @@ def normalize(s):
     s = unicodedata.normalize("NFKC", s).translate(_TRANS).lower()
     s = re.sub(r"-\s*\n\s*", "", s)          # words hyphenated across a line break
     s = re.sub(r"\$\s+", "$", s)             # "$ 1,100,000.00" -> "$1,100,000.00"
+    s = re.sub(r"\(\s+", "(", s)
+    s = re.sub(r"\s+\)", ")", s)             # "one ( 1) year" -> "one (1) year"
     return re.sub(r"\s+", " ", s).strip()
 
 
@@ -116,9 +125,87 @@ def api_check(claim, api_items):
     return "disagree"
 
 
+def _joined(pages):
+    return " ".join(pages[p] for p in sorted(pages))
+
+
+def _locate(q, joined):
+    """Start offset of the quote in the joined source, or None."""
+    i = joined.find(q)
+    if i >= 0:
+        return i
+    m = SequenceMatcher(None, joined, q, autojunk=False).find_longest_match(0, len(joined), 0, len(q))
+    return max(0, m.a - m.b) if m.size >= min(40, len(q) // 2) else None
+
+
+def _description(title):
+    """An item's own wording: its API title minus the 'Sponsor: ...' and 'COMMITTEE SUBSTITUTE' lines,
+    which many items share and which would match the wrong spot in the minutes."""
+    lines = [ln for ln in (title or "").splitlines()
+             if ln.strip() and not ln.strip().lower().startswith(("sponsor", "committee sub"))]
+    return normalize(" ".join(lines))
+
+
+def matter_blocks(pages, api_items):
+    """[(start_offset, matter_file)] sorted: where each agenda item's text begins in the source.
+
+    The item's description is searched for (longest probe first, since neighbours can share an
+    opening), then the block start is pulled back to the 'Sponsor:' line just before it.
+    A block runs until the next item's block starts."""
+    joined = _joined(pages)
+    starts = {}
+    for it in api_items:
+        mf, desc = (it.get("EventItemMatterFile") or "").strip(), _description(it.get("EventItemTitle"))
+        if not mf or len(desc) < TITLE_PROBE:
+            continue
+        i = -1
+        for n in (200, 120, TITLE_PROBE):
+            i = joined.find(desc[:n])
+            if i >= 0 and (n > TITLE_PROBE or joined.count(desc[:n]) == 1):   # short probes must be unique
+                break
+            i = -1
+        if i < 0:
+            # Multi-line sponsor headers leave names in the description; slide the probe along
+            # and accept only a window that occurs exactly once in the source.
+            for off in range(30, min(len(desc) - TITLE_PROBE, 240) + 1, 30):
+                probe = desc[off:off + TITLE_PROBE]
+                if joined.count(probe) == 1:
+                    i = joined.find(probe)
+                    break
+        if i >= 0:
+            j = joined.rfind("sponsor", max(0, i - 160), i)
+            starts[mf] = j if j >= 0 else i
+    return sorted((v, k) for k, v in starts.items())
+
+
+def matter_check(claim, pages, api_items):
+    """'block' if the quote lies in the named matter's block, 'other:<file>' if in another
+    item's block, 'unlocated' if either can't be placed, 'none' if the claim names no matter."""
+    mf = (claim.get("matter_file") or "").strip()
+    if not mf:
+        return "none"
+    blocks = matter_blocks(pages, api_items)
+    pos = _locate(normalize(claim.get("quote", "")), _joined(pages))
+    if pos is None or not blocks or mf not in {f for _, f in blocks}:
+        return "unlocated"      # can't place the claimed item itself, so don't blame a neighbour
+    owner = None
+    for start, file in blocks:
+        if start <= pos:
+            owner = file
+        else:
+            break
+    if owner is None:
+        return "unlocated"
+    return "block" if owner == mf else f"other:{owner}"
+
+
 def code_checks(claim, pages, meta, api_items):
     match, score, page = find_quote(claim.get("quote", ""), pages)
     missing = numbers_check(claim, meta)
+    matter = matter_check(claim, pages, api_items)
+    mf = _canon(claim["matter_file"]) if (claim.get("matter_file") or "").strip().isdigit() else None
+    if matter == "block" and mf in missing:
+        missing = [n for n in missing if n != mf]   # its number is proven by position instead
     api = api_check(claim, api_items)
     qlen = len(normalize(claim.get("quote", "")))
     reasons = []
@@ -128,11 +215,13 @@ def code_checks(claim, pages, meta, api_items):
         reasons.append("quote_too_short")
     if missing:
         reasons.append("number_not_in_quote")
+    if matter.startswith("other:"):
+        reasons.append("quote_from_other_item")
     if api == "disagree":
         reasons.append("api_disagrees")
     return {
         "quote_match": match, "quote_score": score, "quote_page": page,
-        "numbers_missing_from_quote": missing, "api": api,
+        "numbers_missing_from_quote": missing, "matter": matter, "api": api,
         "passed": not reasons, "reasons": reasons,
     }
 

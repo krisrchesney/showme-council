@@ -27,6 +27,12 @@ stages, handoff files, scoring and cost. Python 3.12; the only dependency is
 - Tests and reviews use `--fixture` and `--stub tests/fixtures/kansascity/stub` only.
 - Keep `--max-budget-usd` on every agent call and the per-document / per-night caps in run.py.
 
+## Models
+- Pipeline and dev agents default to Sonnet 5.5. Never switch an agent to Opus, or pass
+  `--model claude-opus-5-5`, without asking the user first and saying why.
+- When a stage stops with "this may need Opus: <why>", report it and ask. Don't rerun it
+  on Opus yourself. DESIGN.md "Model policy" lists exactly when the pipeline stops.
+
 ## Conventions
 - Stages hand off through files in data/ (see DESIGN.md). Don't pass results between
   stages in memory, so a single stage can be re-run.
@@ -35,6 +41,9 @@ stages, handoff files, scoring and cost. Python 3.12; the only dependency is
 - Only `verify.decide()` decides what is published. The site reads data/published/ only.
 - A new city is a new adapter in pipeline/sources/ that fills in `Source`; nothing
   downstream may know which city a document came from.
+- When the code check and the fact-checker disagree about a claim, read the disagreement
+  before touching either: the first real run found the code check was the wrong one.
+  `python -m pipeline.run redecide <doc>` re-scores saved agent output for free.
 - Plain-language writing on the site: short sentences, explain jargon once, neutral tone.
 
 ## Never

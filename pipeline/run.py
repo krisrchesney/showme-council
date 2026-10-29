@@ -23,7 +23,7 @@ import os
 import sys
 
 from pipeline import paths
-from pipeline.agents import run_agent
+from pipeline.agents import AgentOutputError, run_agent
 from pipeline.site import build_site
 from pipeline.sources import get_source
 from pipeline.sources.base import read_raw, write_raw
@@ -32,6 +32,8 @@ from pipeline.verify import code_checks, decide, split_pages
 # $ per million tokens, from the claude-api reference (cached 2026-10-06). Used only for estimates;
 # real runs record the cost Claude Code reports.
 PRICES = {"claude-opus-5-5": (4.00, 20.00), "claude-sonnet-5-5": (2.00, 10.00), "claude-haiku-5-5": (0.10, 0.50)}
+DEFAULT_MODEL = "claude-sonnet-5-5"     # model policy: Sonnet by default (also each agent .md)
+ESCALATION_MODEL = "claude-opus-5-5"    # only when the user reruns a document with --model
 CALL_OVERHEAD_TOKENS = 6000   # Claude Code's own system prompt + agent instructions, per call
 MAX_TRIES = 3
 
@@ -56,7 +58,9 @@ def load_state():
 
 
 def seen_ids(state):
-    return {k for k, v in state["docs"].items() if v["status"] == "ok" or v.get("tries", 0) >= MAX_TRIES}
+    # needs_model waits for the user to rerun with --model; retrying on the same model will not help
+    return {k for k, v in state["docs"].items()
+            if v["status"] in ("ok", "needs_model") or v.get("tries", 0) >= MAX_TRIES}
 
 
 def ingest(source_name, since, until, limit=None, fixture=False):
@@ -77,7 +81,7 @@ def ingest(source_name, since, until, limit=None, fixture=False):
     return out
 
 
-def estimate(doc_id, model="claude-opus-5-5"):
+def estimate(doc_id, model=DEFAULT_MODEL):
     """Rough cost of one document before spending anything. ~3.5 chars per token for this text."""
     _, text, _ = read_raw(doc_id)
     src_tok = len(text) / 3.5
@@ -97,18 +101,36 @@ def estimate(doc_id, model="claude-opus-5-5"):
     return rows
 
 
-def process(doc_id, stub_dir=None, max_usd=1.50):
+class NeedsStrongerModel(RuntimeError):
+    """A stage failed in a way that looks like a model-capability problem. The pipeline never
+    switches models by itself: it stops this document and tells the user to rerun it."""
+
+    def __init__(self, why):
+        super().__init__(f"this may need Opus: {why}. Rerun with: "
+                         f"python -m pipeline.run process <doc> --model {ESCALATION_MODEL}")
+
+
+MISSING_VERDICT_LIMIT = 0.10   # fact-checker skipped >10% of claims -> it could not handle the document
+
+
+def process(doc_id, stub_dir=None, max_usd=1.50, model=None):
     meta, text, api_items = read_raw(doc_id)
     pages = split_pages(text)
     wd = paths.work_dir(doc_id)
     spent, costs = 0.0, {}
+    strong = (model or DEFAULT_MODEL) == ESCALATION_MODEL
 
     def call(name, schema, payload):
         nonlocal spent
         left = max_usd - spent
         if left <= 0.05:
             raise RuntimeError(f"budget ${max_usd:.2f} used up before {name}")
-        out, usage = run_agent(name, schema, payload, wd, left, stub_dir=stub_dir)
+        try:
+            out, usage = run_agent(name, schema, payload, wd, left, stub_dir=stub_dir, model=model)
+        except AgentOutputError as e:
+            if strong:
+                raise
+            raise NeedsStrongerModel(f"{name} did not return valid structured output ({e})") from e
         spent += usage.get("cost_usd") or 0.0
         costs[name] = usage
         _dump(os.path.join(wd, f"{name}.usage.json"), usage)
@@ -139,15 +161,33 @@ def process(doc_id, stub_dir=None, max_usd=1.50):
     sentences.append({"index": len(sentences), "text": summary.get("headline", ""), "claim_ids": cited, "is_headline": True})
     verdicts = call("fact-checker", "fact_checker", {
         "meta": meta, "source": text,
-        "claims": [dict(c, code_checks={k: checks[c["id"]][k] for k in ("quote_match", "numbers_missing_from_quote", "api")}) for c in claims],
+        "claims": [dict(c, code_checks={k: checks[c["id"]][k] for k in ("quote_match", "numbers_missing_from_quote", "matter", "api")}) for c in claims],
         "sentences": sentences,
     }) if claims else {"claims": [], "sentences": []}
     _dump(os.path.join(wd, "verdicts.json"), verdicts)
+    judged = {v["id"] for v in verdicts.get("claims", [])}
+    skipped = [c["id"] for c in claims if c["id"] not in judged]
+    if claims and len(skipped) / len(claims) > MISSING_VERDICT_LIMIT and not strong:
+        raise NeedsStrongerModel(f"fact-checker gave no verdict for {len(skipped)} of {len(claims)} claims")
 
     # 5. decide + publish
+    usage_meta = {"at": _now(), "stub": bool(stub_dir), "cost_usd": round(spent, 4),
+                  "cost_by_stage": {k: v.get("cost_usd") for k, v in costs.items()},
+                  "models": {k: v.get("models") for k, v in costs.items()},
+                  "tokens": {k: {"in": (v.get("usage") or {}).get("input_tokens", 0)
+                                 + (v.get("usage") or {}).get("cache_creation_input_tokens", 0)
+                                 + (v.get("usage") or {}).get("cache_read_input_tokens", 0),
+                                 "out": (v.get("usage") or {}).get("output_tokens", 0)}
+                             for k, v in costs.items()}}
+    _dump(os.path.join(wd, "usage_meta.json"), usage_meta)
+    return finalize(doc_id, meta, claims, checks, summary, verdicts, usage_meta)
+
+
+def finalize(doc_id, meta, claims, checks, summary, verdicts, usage_meta):
+    """decide() + write report, published JSON and the metrics line. Free; no model calls."""
+    wd = paths.work_dir(doc_id)
     result = decide(meta, claims, checks, summary, verdicts)
-    report = dict(result["report"], at=_now(), stub=bool(stub_dir),
-                  cost_usd=round(spent, 4), cost_by_stage={k: v.get("cost_usd") for k, v in costs.items()})
+    report = dict(result["report"], **usage_meta)
     _dump(os.path.join(wd, "report.json"), dict(result, report=report))
     _dump(os.path.join(paths.PUBLISHED, f"{doc_id}.json"), {
         "meta": meta, "headline": result["headline"], "generated_at": report["at"],
@@ -158,9 +198,36 @@ def process(doc_id, stub_dir=None, max_usd=1.50):
         "report": report,
     })
     os.makedirs(paths.DATA, exist_ok=True)
-    with open(paths.METRICS, "a", encoding="utf-8") as f:
-        f.write(json.dumps(report) + "\n")
+    lines = []
+    if os.path.exists(paths.METRICS):    # one line per document: a re-decide replaces its line
+        with open(paths.METRICS, encoding="utf-8") as f:
+            lines = [x for x in f if x.strip() and json.loads(x)["doc_id"] != doc_id]
+    lines.append(json.dumps(report) + "\n")
+    with open(paths.METRICS, "w", encoding="utf-8") as f:
+        f.writelines(lines)
     return report
+
+
+def redecide(doc_id):
+    """Re-run the free stages (code checks + decide) on saved agent outputs. For when verify.py
+    changes: no model call, so the agents' outputs stay exactly as they were."""
+    meta, text, api_items = read_raw(doc_id)
+    pages = split_pages(text)
+    wd = paths.work_dir(doc_id)
+
+    def load(name):
+        with open(os.path.join(wd, name), encoding="utf-8") as f:
+            return json.load(f)
+    claims = load("facts.json")["claims"]
+    checks = {c["id"]: code_checks(c, pages, meta, api_items) for c in claims}
+    _dump(os.path.join(wd, "checks.json"), checks)
+    if os.path.exists(os.path.join(wd, "usage_meta.json")):
+        usage_meta = load("usage_meta.json")
+    else:
+        old = load("report.json")["report"]
+        usage_meta = {k: old.get(k) for k in ("at", "stub", "cost_usd", "cost_by_stage")}
+    usage_meta = dict(usage_meta, redecided_at=_now())
+    return finalize(doc_id, meta, claims, checks, load("summary.json"), load("verdicts.json"), usage_meta)
 
 
 def _mark(doc_id, status, error=None):
@@ -186,6 +253,9 @@ def nightly(source_name, days, max_docs, max_usd, fixture=False, stub_dir=None, 
             spent += rep["cost_usd"]
             _mark(doc_id, "ok")
             print(f"{doc_id}: {rep['claims_accepted']}/{rep['claims_extracted']} claims passed, ${rep['cost_usd']:.2f}")
+        except NeedsStrongerModel as e:
+            _mark(doc_id, "needs_model", str(e))
+            print(f"{doc_id}: STOPPED, {e}", file=sys.stderr)
         except Exception as e:  # one bad PDF must not stop the night
             _mark(doc_id, "error", str(e))
             print(f"{doc_id}: FAILED {e}", file=sys.stderr)
@@ -205,11 +275,15 @@ def main(argv=None):
     p.add_argument("--fixture", action="store_true")
     p = sub.add_parser("estimate")
     p.add_argument("doc_id")
-    p.add_argument("--model", default="claude-opus-5-5", choices=sorted(PRICES))
+    p.add_argument("--model", default=DEFAULT_MODEL, choices=sorted(PRICES))
     p = sub.add_parser("process")
     p.add_argument("doc_id")
     p.add_argument("--stub")
     p.add_argument("--max-usd", type=float, default=1.50)
+    p.add_argument("--model", choices=sorted(PRICES),
+                   help="override every agent model for this document (e.g. after a may-need-Opus stop)")
+    p = sub.add_parser("redecide")
+    p.add_argument("doc_id")
     p = sub.add_parser("nightly")
     p.add_argument("--source", default="kansascity")
     p.add_argument("--days", type=int, default=3)
@@ -225,9 +299,15 @@ def main(argv=None):
     elif a.cmd == "estimate":
         print(json.dumps(estimate(a.doc_id, a.model), indent=2))
     elif a.cmd == "process":
-        rep = process(a.doc_id, stub_dir=a.stub, max_usd=a.max_usd)
+        try:
+            rep = process(a.doc_id, stub_dir=a.stub, max_usd=a.max_usd, model=a.model)
+        except NeedsStrongerModel as e:
+            _mark(a.doc_id, "needs_model", str(e))
+            sys.exit(str(e))
         _mark(a.doc_id, "ok")
         print(json.dumps(rep, indent=2))
+    elif a.cmd == "redecide":
+        print(json.dumps(redecide(a.doc_id), indent=2))
     elif a.cmd == "nightly":
         nightly(a.source, a.days, a.max_docs, a.max_usd, a.fixture, a.stub)
     elif a.cmd == "build-site":

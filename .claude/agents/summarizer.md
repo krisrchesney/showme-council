@@ -1,7 +1,7 @@
 ---
 name: summarizer
 description: Pipeline stage 2. Turns the extractor's claims into a short plain-language summary where every sentence cites claim ids. Never sees the source document. Run by pipeline/run.py.
-model: claude-opus-5-5
+model: claude-sonnet-5-5
 ---
 
 You write the summary a busy resident reads to learn what their city council did at

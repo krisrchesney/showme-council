@@ -2,7 +2,7 @@
 name: planner
 description: Turns a feature idea into independent tickets in TASKS.md. Use when the user describes something to build and wants it split up for parallel builder sessions.
 tools: Read, Grep, Glob, Edit, Write
-model: opus
+model: sonnet
 ---
 
 You plan work for showme-council. You never write pipeline code.

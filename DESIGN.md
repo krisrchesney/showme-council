@@ -63,15 +63,16 @@ builds its `--agents` JSON from them.
 
 ## How the fact-checker scores support (the metric)
 
-A claim is **accepted** only if all five checks pass:
+A claim is **accepted** only if all six checks pass:
 
 | # | Check | Who | Rejects when |
 |---|---|---|---|
 | 1 | `quote_found` | code | The normalized quote isn't in the source exactly and no window is ≥ 0.92 similar (`FUZZY_MIN`, which allows for PDF spacing noise). |
 | 2 | `quote_length` | code | The quote is under 20 characters, too short to prove anything ("Passed"). |
-| 3 | `numbers_in_quote` | code | A number in the statement or `amount_usd` isn't in the quote. The meeting date's parts are allowed. |
-| 4 | `api_agrees` | code | The claim says "passed" but the city's own record for that matter number says "referred" (or the other way round). Skipped when the API has no record. |
-| 5 | verdict | fact-checker agent | The verdict is anything but `SUPPORTED` (`PARTIAL` = one detail wrong, `UNSUPPORTED` = not in the source). |
+| 3 | `numbers_in_quote` | code | A number in the statement or `amount_usd` isn't in the quote. The meeting date's parts are allowed, and so is the claim's own matter number when check 4 proves it by position. |
+| 4 | `matter_block` | code | The quote sits inside a *different* agenda item's text than the matter number the claim names. Legistar minutes print an item's number a few lines after its description, so a correct quote often can't contain it. The blocks are found by locating each API item's description in the source. If the claimed item can't be located, this check is skipped, not failed. |
+| 5 | `api_agrees` | code | The claim says "passed" but the city's own record for that matter number says "referred" (or the other way round). Skipped when the API has no record. |
+| 6 | verdict | fact-checker agent | The verdict is anything but `SUPPORTED` (`PARTIAL` = one detail wrong, `UNSUPPORTED` = not in the source). |
 
 A summary **sentence** is published only if the fact-checker marks it `FAITHFUL`
 to the claims it cites **and** every one of those claims was accepted. A faithful
@@ -89,6 +90,20 @@ Why two layers: the model that does the work never judges its own work. Code
 checks are cheap and can't be talked out of a result. The agent catches meaning
 errors that string matching can't see. The stub fixture plants one error of each
 kind, and `tests/test_verify.py` proves each is caught for the right reason.
+
+**What the first real run showed** (2026-10-29, KC Council minutes of 2026-10-22,
+37 claims, run on Opus 5.5 before the Sonnet default): the first scoring pass
+rejected 19 claims for "number not in quote", and the fact-checker had marked all 19
+SUPPORTED. The checker was right and my code check was wrong: it demanded the matter
+number (260885) inside the quote, and the minutes print that number after the
+description. Check 4 replaced that with a positional proof. Re-scoring the saved
+agent outputs with `python -m pipeline.run redecide <doc>` (free, no model call)
+took the pass rate from 49% to 86% (32 of 37). The 5 remaining rejections are
+correct under the rules: a claim stating "Fund No. 2220" or "FY 2026-27" whose
+quote doesn't contain that number (3), an unlocated item whose number isn't in
+the quote (1), and the checker catching "acknowledges" for an ordinance that was
+only introduced (1). Lesson: when code and the checker disagree, read the
+disagreements before trusting either.
 
 What the metric does not prove: recall (facts the extractor missed), or that
 the fact-checker itself is right. T-5 adds planted errors to real runs to
@@ -150,25 +165,30 @@ constraint is usage headroom, not dollars:
 
 The API-price equivalent is still useful as a size measure, and it's what an
 API-key fork would pay. Prices: Opus 5.5 $4 / $20 per million input / output
-tokens; Sonnet 5.5 $2 / $10; Haiku 5.5 $0.10 / $0.50. Agents default to Opus 5.5
-(`model:` in each `.md`).
+tokens; Sonnet 5.5 $2 / $10; Haiku 5.5 $0.10 / $0.50. Agents default to **Sonnet 5.5**
+(`model:` in each `.md`; see "Model policy").
 
 One KC Council minutes document (the 2026-10-22 fixture: 28 pages, about 12.6k
 tokens of text). `python -m pipeline.run estimate <doc>` gives:
 
-| Stage | In (tokens) | Out incl. thinking | Opus 5.5 |
+| Stage | In (tokens) | Out incl. thinking | Opus 5.5 (the estimate for an escalated run) |
 |---|---|---|---|
 | extractor | ~19k | ~9k | $0.26 |
 | summarizer | ~10k | ~2.5k | $0.09 |
 | fact-checker | ~27k | ~6k | $0.23 |
-| **per document** | | | **≈ $0.57** |
+| **per document** | | | **≈ $0.57** (Sonnet 5.5: ≈ $0.29) |
+
+**Measured, one real run** (Opus 5.5, before the model policy changed): 62.5k tokens in and
+13.7k out across the three calls, about 2 minutes, $0.77 API-equivalent: extractor $0.34
+(60 s), summarizer $0.09, fact-checker $0.34. The estimate said 55k in / 17.5k out / $0.57,
+so it was low on dollars (~35%), mostly because each call writes the document into the
+prompt cache. No Sonnet run has been measured yet; the Sonnet figure above is the estimate.
 
 Volume with the chosen bodies (Council + 3 standing committees): about 5 new
-documents a week (Council agenda and minutes, committee agendas). That's about
-**$0.40 a night, or $12 a month, in API-price terms on Opus 5.5**, and $0 billed
-on the subscription. That's ~$6/month if
-all three agents switch to Sonnet 5.5, and much less on Haiku 5.5, untested for
-quality. Committee agendas are shorter than the fixture, so these numbers are
+documents a week (Council agenda and minutes, committee agendas). That's
+**about $0.20 a night, or $6 a month, in API-price terms on Sonnet 5.5** (double that if
+every document were escalated to Opus 5.5), and $0 billed on the subscription. Haiku 5.5
+would be cheaper still and is untested for quality. Committee agendas are shorter than the fixture, so these numbers are
 on the high side. The first real runs replace them: every run records Claude
 Code's reported `total_cost_usd` per stage in `report.json`.
 
@@ -177,6 +197,26 @@ document's cap), `$1.50` per document, `$4.00` per night (`nightly --max-usd`).
 Hitting the nightly cap leaves the remaining documents for tomorrow. GitHub runner
 minutes: free for a public repo. Actual dollars billed under the chosen setup: $0
 beyond the existing Claude plan.
+
+## Model policy
+
+Default to **Sonnet 5.5** (`claude-sonnet-5-5`) for the three pipeline agents and for
+the planner and reviewer dev agents. Move to a bigger model only when the user
+asks for it, never automatically. That's a user-set rule, not a measurement: it
+needs a first Sonnet run to confirm quality is acceptable.
+
+How escalation works, with no silent model switching:
+- The pipeline stops a document with `status: needs_model` and prints
+  `this may need Opus: <why>. Rerun with: python -m pipeline.run process <doc> --model claude-opus-5-5`
+  when, on the default model, (a) an agent returns nothing that parses against its
+  schema, or (b) the fact-checker gives no verdict for more than 10% of the claims.
+- Retrying the same model won't help, so nightly leaves a `needs_model` document
+  alone until the user reruns it. Everything else keeps going.
+- The user reruns that one document with `--model claude-opus-5-5`, which overrides
+  all three agents. Under an explicit Opus run the same failures are plain errors,
+  not another request to escalate.
+- A low pass rate alone is not an escalation signal: rejections usually mean the
+  checks are working. The report lists which model each stage used (`models`).
 
 ## Rules the design depends on
 
