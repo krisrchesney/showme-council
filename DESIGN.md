@@ -116,8 +116,12 @@ only introduced (1). Lesson: when code and the checker disagree, read the
 disagreements before trusting either.
 
 What the metric does not prove: recall (facts the extractor missed), or that
-the fact-checker itself is right. T-5 adds planted errors to real runs to
-measure the checker's catch rate.
+the fact-checker itself is right. For the checker, each run now plants a few deliberately false
+claims in its input (`pipeline/canary.py`): outcome flipped, a false "unanimously", a swapped
+councilmember, a wrong body. Their counts show on the site and in `report.json`; the fakes are
+split off before `decide()` and never published. First measurement (docs/MODEL-COMPARISON.md,
+Test 3): 10 of 10 caught for the right reasons, 0 of 118 real claims flagged. A small sample of easy fakes;
+T-14 makes them subtler.
 
 ## Schedule: GitHub Actions vs. a local scheduled task
 
