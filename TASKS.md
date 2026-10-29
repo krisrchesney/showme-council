@@ -72,7 +72,7 @@ Done when:
 - [ ] The site footer credit names the source city per document, not always Kansas City
 
 ### T-5: Measure the fact-checker's catch rate with planted errors
-Status: Ready
+Status: Ready (do first: Sonnet's checker has flagged 0 of 118 claims and nothing yet shows it would catch an error)
 Owns: pipeline/canary.py (new); one call in pipeline/run.py `process()` after the fact-checker stage; tests/test_canary.py (new)
 Blocked by: none
 Uses plan usage: yes (adds ~10% to the fact-checker stage)
@@ -116,6 +116,38 @@ Done when:
 - [ ] The summarizer returns `headline_claim_ids`; the headline is published only if the checker marks it FAITHFUL against those claims and all of them were accepted
 - [ ] Offline test: a rejected claim that the headline does not cite no longer costs the headline; one it does cite still does
 - [ ] A saved run with no `headline_claim_ids` keeps the conservative rule
+
+### T-11: Match the city's own wording for outcomes (held, referred, advanced...)
+Status: Ready
+Owns: pipeline/verify.py `_OUTCOME_WORDS` and `api_check()`; tests/test_verify.py ApiTests; a re-score of tests/fixtures/kansascity/runs/ (not the frozen test)
+Blocked by: none
+Uses plan usage: no
+Why: Test 2 (docs/MODEL-COMPARISON.md): the committee minutes record "Hold on Agenda"; the check looks for the word "held" and reported `api_disagrees` on two true facts. Document 3 failed the 80% bar on it. The city's action vocabulary seen so far: Adopted, Adopted as Substituted, Adv and Do Pass, Adv and Do Pass as Cmte Sub, Held on Docket, Hold on Agenda, Move To Introduce, Passed, Passed as Substituted, Re-referred, received and filed, referred.
+Done when:
+- [ ] "held" matches "Held on Docket", "Hold on Agenda" and "Held in Committee"; "referred" matches "Re-referred"; "Adv and Do Pass" is checkable (an `advanced` outcome), instead of `other` being unchecked
+- [ ] A claim that disagrees with the city's wording still gets `api_disagrees` (tests for each pair, including a wrong one)
+- [ ] The saved outputs of all three test-2 documents are re-scored with the new code and reported as a labelled post-hoc re-score, never as a pass of the pre-registered test
+
+### T-12: Verify derived tallies against the API roll call
+Status: Ready
+Owns: pipeline/verify.py (new `tally_check()` beside `numbers_check`); pipeline/run.py `process()` wiring; tests/test_verify.py
+Blocked by: none
+Uses plan usage: no
+Why: "Resolution 260897 passed with all 13 members voting aye" is true (the city's roll call has 13 Ayes) but was rejected because 13 isn't in the quote: it is the model's count of the names. The roll call is already in `api_items`.
+Done when:
+- [ ] A number in a statement that equals the Aye / Nay / Excused count of that matter's API roll call is accepted without being in the quote
+- [ ] A wrong tally (say 12 when the roll call has 13) is still rejected
+- [ ] No other number is exempted
+
+### T-13: Place items whose minutes wording differs from the API title
+Status: Ready
+Owns: pipeline/verify.py `matter_blocks()`; tests/test_matter_blocks_and_escalation.py
+Blocked by: none
+Uses plan usage: no
+Why: A committee substitute prints new wording in the minutes ("identify up to $15,000,000.00") while the API keeps the original title ("estimate costs necessary..."), so Resolution 260885 can't be located and its number must then appear in the quote. Two true facts were rejected for it in document 1.
+Done when:
+- [ ] An item that the title probe can't place is located another way (e.g. the legislation number itself appearing in the item's trailing lines), with no loosening for items that are placed
+- [ ] The two 260885 facts from the saved run pass; a wrong-item quote is still rejected
 
 ## In progress
 

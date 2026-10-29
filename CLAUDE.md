@@ -68,3 +68,4 @@ Read these before starting a ticket.
 - T-8/T-9: a prompt that said "precision matters far more than coverage" made Sonnet write 7 facts from a 29-vote meeting. Ask for completeness explicitly, and measure coverage against the city's own record (`coverage`), not just the pass rate.
 - T-8/T-9: a headline could restate a rejected fact; it now requires every claim it cites to be accepted. When adding anything that gets published, check it against the accepted set, not just the checker's verdict.
 - Fixing a number regex: match the whole number first and filter after; a lookahead that backtracks turned "63rd" into "6".
+- Test 2: before comparing models, pre-register the pass criteria and freeze verify.py, the prompts and the thresholds. When a document fails because of the verifier (T-11), report the failure, ticket the fix, and re-score afterwards as a labelled post-hoc run. Never count it as a pass.

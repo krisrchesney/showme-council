@@ -164,3 +164,90 @@ table above (92%, 90%, 0, no stop).
   designed) or an **over-strict check** (listed as a ticket, not fixed here).
 
 Failures are reported as failures.
+
+## Results
+
+Sonnet 5.5, default settings, code frozen at `00af077` (verified unchanged before the runs). No
+stop fired, nothing was published. The Opus page is untouched.
+
+| | Doc 1: Council 2026-10-22 | Doc 2: Council 2026-10-08 | Doc 3: FGPS committee 2026-09-08 |
+|---|---|---|---|
+| Facts extracted | 60 | 48 | 10 |
+| **Facts passing every check** (needs 80%) | 55 (92%) **pass** | 46 (96%) **pass** | 7 (70%) **FAIL** |
+| **Voted-item coverage** (needs 66%) | 26 of 29 (90%) **pass** | 9 of 9 (100%) **pass** | n/a (0 recorded pass/fail) |
+| **Accepted facts the city's record contradicts** (needs 0) | 0 **pass** | 0 **pass** | 0 **pass** |
+| **"May need Opus" stop** (needs none) | none **pass** | none **pass** | none **pass** |
+| Fact-checker flags (not scored) | 0 of 60 | 0 of 48 | 0 of 10 |
+| Accepted vote facts / confirmed by the city's record | 42 / 42 | 32 / 32 | 2 / 0 (their outcome is "other", which can't be checked against the record) |
+| Summary sentences published / written | 6 / 8 | 7 / 9 | 6 / 9 |
+| Tokens in / out | 70.2k / 15.2k | 56.3k / 13.5k | 25.5k / 4.7k |
+| Turns | 6 | 6 | 6 |
+| Wall time | 90 s | 85 s | 40 s |
+| Extractor stage (in / out, time) | 24.9k / 10.9k, 61 s | 19.8k / 8.5k, 49 s | 9.3k / 2.1k, 15 s |
+| Summarizer stage | 9.3k / 1.0k, 8 s | 8.2k / 1.6k, 12 s | 5.1k / 0.9k, 9 s |
+| Fact-checker stage | 36.0k / 3.3k, 21 s | 28.2k / 3.5k, 24 s | 11.1k / 1.7k, 16 s |
+| **Document passes?** | yes (after the earlier fixes) | **yes** | **NO** |
+
+The two new documents together used 81.8k tokens in and 18.3k out over 125 seconds, under the
+~150k tokens estimated for both.
+
+**Overall: the pre-registered test FAILED.** Document 2 met every criterion with room to spare.
+Document 3 missed the 80% bar: 7 of 10 facts passed.
+
+## Why those facts were rejected: all ten, read and classified
+
+Document 3 has 10 facts, so 70% against 80% is a one-fact difference. The point is what the three
+rejections are.
+
+| Document | Fact | Check that rejected it | Classification |
+|---|---|---|---|
+| 2 | "Resolution 260897 passed with all 13 members voting aye" | `13` isn't in the quote | **Correct by design.** The statement says more than its quote: the 13 is the model's own count of the names listed. It is true (the city's roll call has 13 Ayes). |
+| 2 | Same for Ordinance 260893 | same | **Correct by design**, same reason. |
+| 3 | "Advanced...for the ordinance creating Section 2-90" | `2` and `90` aren't in the quote | **Correct by design.** The quote is the "Adv and Do Pass" line; the section number sits elsewhere. The item is left uncovered, not misreported. |
+| 3 | "Riverfront CID ordinance was held in committee until September 22" | `api_disagrees` | **Over-strict: a bug in my check.** The city's record calls the action "Hold on Agenda"; my vocabulary looks for the word "held" and doesn't find it in "Hold". The claim is true, and the fact-checker said so. |
+| 3 | "Mississippi Lime ordinance was held until September 22 and transferred" | `api_disagrees` | **Over-strict**, same bug. |
+
+For document 1 (earlier): lot number (`Lot 1`) and street address (`1815 Paseo`) in the statement but
+not the quote are correct by design; a quote too short to prove anything ("Willett voted Nay") is
+correct by design; the two about Resolution 260885 are an **over-strict limitation**: the minutes
+print a committee-substitute's wording, which differs from the original title in the API, so the
+check couldn't place the item and then demanded its number in the quote. So that is why 55 of 60
+passed rather than 60: three kinds of reason, of which "the statement says more than its quote"
+is the check doing its job, and "the check couldn't place the item" and "the check's word list
+missed the city's wording" are mine to fix.
+
+If the over-strict items were fixed, document 3 would be 9 of 10. **I'm not counting that as a pass.**
+The criteria said failure is failure, the code was frozen, and the fix is a ticket (T-11). It
+is a statement about my checker, not about Sonnet: all 10 facts in document 3 are true as far as I
+can tell.
+
+## What I make of zero fact-checker flags
+
+Across the three Sonnet coverage-prompt runs the checker flagged 0 of 118 claims. Three readings:
+
+1. **The facts really were right.** For votes there is independent evidence: all 74 accepted vote
+   facts in documents 1 and 2 match the city's own record, and the 13-aye claims are true. The
+   extractor prompt also now tells the extractor not to write "authorizes" for an item that was only
+   introduced, which is exactly the mistake the checker caught on the first prompt and on Opus. So
+   there was less for it to catch.
+2. **The checker is lenient.** It marked "SUPPORTED" claims that my code correctly rejected (the
+   13-member count, Section 2-90). It is told what the code found but is not asked to second-guess
+   it, so its agreement with code only shows on the cases above.
+3. **It reads carefully.** Its reasons are specific ("13 names listed as Aye and no Nay", dates,
+   section numbers), which is not what a rubber stamp looks like.
+
+I can't separate 1 from 2 from this data. **T-5 (planted errors) should come before relying on the
+checker or adding more documents:** it is the only way to measure what the checker catches. Until
+then, the real defence is the code layer and the city's vote record, not the checker.
+
+## Recommendation
+
+- **Report the test as failed**, as pre-registered: documents 1 and 2 pass, document 3 does not.
+- **Keep Sonnet 5.5 as the default.** The failure is in my verifier (a vocabulary bug and a strict
+  rule), not in Sonnet, and nothing in this test shows Sonnet doing worse than Opus: on the two
+  Council documents it covered 90% and 100% of voted items with 0 contradictions. But it is not
+  proven beyond Kansas City Council minutes, and committee minutes are untested in the sense that
+  matters.
+- **Order of work:** T-5 first (is the checker real?), then T-11 (city wording for held/referred/etc.)
+  and re-score the saved outputs for free as a labelled post-hoc re-score, then T-12 and T-13.
+  Only then consider scaling to more documents.
