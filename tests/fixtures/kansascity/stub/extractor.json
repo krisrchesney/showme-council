@@ -1,0 +1,81 @@
+{
+ "claims": [
+  {
+   "matter_file": "260919",
+   "outcome": "passed",
+   "amount_usd": null,
+   "date": null,
+   "id": "c1",
+   "type": "vote",
+   "statement": "The Council passed Ordinance 260919.",
+   "quote": "Authenticated Ordinance 260919\nA motion was made that this Ordinance be Passed.. The motion carried by the",
+   "page": 13
+  },
+  {
+   "matter_file": null,
+   "outcome": null,
+   "amount_usd": 1100000.0,
+   "date": null,
+   "id": "c2",
+   "type": "spending",
+   "statement": "An ordinance authorizes the City Manager to spend up to $1,100,000.00 on audio and video system upgrades at City Hall.",
+   "quote": "Authorizing the City Manager to expend an amount not to exceed $ 1,100,000.00 for the \npurpose of audio and video system upgrades at City Hall",
+   "page": 13
+  },
+  {
+   "matter_file": "260931",
+   "outcome": "referred",
+   "amount_usd": 1000000.0,
+   "date": null,
+   "id": "c3",
+   "type": "vote",
+   "statement": "Ordinance 260931, which would appropriate $1,000,000.00 for a replacement playground at Barry Road Park, was referred to the Neighborhood Planning and Development Committee.",
+   "quote": "Appropriating $1,000,000.00 from the Dog Park CD2 GO Bond project account to fund the \ninstallation of a replacement playground at Barry Road Park; and recognizing this ordinance \nas having an accelerated effective date.\n260931\nDirector of Parks & Recreation DepartmentSponsors:\nAttachments: Barry Road Park Transfer DM\nreferredto the Neighborhood Planning and Development Committee",
+   "page": 23
+  },
+  {
+   "matter_file": null,
+   "outcome": null,
+   "amount_usd": 2100000.0,
+   "date": null,
+   "id": "c4",
+   "type": "spending",
+   "statement": "An ordinance authorizes the City Manager to spend up to $2,100,000.00 on audio and video system upgrades at City Hall.",
+   "quote": "Authorizing the City Manager to expend an amount not to exceed $ 1,100,000.00 for the \npurpose of audio and video system upgrades at City Hall",
+   "page": 13
+  },
+  {
+   "matter_file": null,
+   "outcome": null,
+   "amount_usd": null,
+   "date": null,
+   "id": "c5",
+   "type": "other",
+   "statement": "The Council voted to raise property taxes by 5 percent.",
+   "quote": "The Council approved a 5 percent property tax increase.",
+   "page": 3
+  },
+  {
+   "matter_file": "260931",
+   "outcome": "passed",
+   "amount_usd": null,
+   "date": null,
+   "id": "c6",
+   "type": "vote",
+   "statement": "The Council passed Ordinance 260931.",
+   "quote": "260931\nDirector of Parks & Recreation DepartmentSponsors:\nAttachments: Barry Road Park Transfer DM",
+   "page": 23
+  },
+  {
+   "matter_file": "260919",
+   "outcome": "passed",
+   "amount_usd": null,
+   "date": null,
+   "id": "c7",
+   "type": "vote",
+   "statement": "The full Council unanimously passed Ordinance 260919.",
+   "quote": "Authenticated Ordinance 260919\nA motion was made that this Ordinance be Passed.. The motion carried by the",
+   "page": 13
+  }
+ ]
+}

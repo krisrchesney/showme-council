@@ -1,0 +1,38 @@
+# Nightly pipeline. DRAFT: manual trigger only until T-1 is approved.
+# Needs repo secret ANTHROPIC_API_KEY (Settings > Secrets and variables > Actions).
+name: nightly
+
+on:
+  workflow_dispatch:
+  # T-1 turns this on, after the user's OK:
+  # schedule:
+  #   - cron: "30 7 * * *"   # 07:30 UTC = 2:30 AM CDT / 1:30 AM CST
+
+concurrency:
+  group: nightly
+  cancel-in-progress: false
+
+permissions:
+  contents: write   # T-1: commit data/ back
+  pages: write
+  id-token: write
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt
+      - run: npm install -g @anthropic-ai/claude-code@2.1.299
+      - run: python scripts/check.py
+      - name: Pipeline
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          SHOWME_BARE: "1"
+        run: python -m pipeline.run nightly --days 3 --max-docs 4 --max-usd 4.00
+      # T-1: commit data/state.json, data/published/, data/metrics.jsonl; then
+      # actions/upload-pages-artifact (path: site) + actions/deploy-pages.
