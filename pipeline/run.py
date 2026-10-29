@@ -279,6 +279,35 @@ def redecide(doc_id):
     return finalize(doc_id, meta, claims, checks, load("summary.json"), load("verdicts.json"), usage_meta)
 
 
+def report_markdown(doc_id):
+    """A short markdown summary of one processed document: quality and usage (tokens, turns, time)."""
+    wd = paths.work_dir(doc_id)
+    with open(os.path.join(wd, "report.json"), encoding="utf-8") as f:
+        full = json.load(f)
+    with open(os.path.join(wd, "verdicts.json"), encoding="utf-8") as f:
+        verdicts = json.load(f)["claims"]
+    r, u = full["report"], full["report"]["usage"]
+    cov = r.get("coverage")
+    flags = sum(1 for v in verdicts if v["verdict"] != "SUPPORTED")
+    contradicted = sum(1 for c in full["accepted"] if c["code_checks"]["api"] == "disagree")
+    pct = lambda x: "n/a" if x is None else f"{round(100 * x)}%"
+    lines = [
+        f"### {doc_id}",
+        f"- facts: {r['claims_extracted']} extracted, {r['claims_accepted']} passed ({pct(r['claim_pass_rate'])})",
+        "- voted-item coverage: " + (f"{cov['covered']} of {cov['voted']} ({pct(cov['rate'])})" if cov else "n/a"),
+        f"- accepted facts the city's record contradicts: {contradicted}",
+        f"- fact-checker flags: {flags} of {len(verdicts)}",
+        f"- summary sentences published: {r['sentences_published']} of {r['sentences_written']}",
+        f"- models: {', '.join(r['models']) or 'none'}; auth: {r.get('auth')}",
+        f"- usage: {u['tokens_in']:,} tokens in, {u['tokens_out']:,} out, {u['turns']} turns, {u['seconds']:.0f} s",
+    ]
+    for name, v in u["by_stage"].items():
+        lines.append(f"  - {name}: {v['tokens_in']:,} in, {v['tokens_out']:,} out, {v['turns']} turns, {v['seconds']:.0f} s")
+    if r.get("reject_reasons"):
+        lines.append("- rejected because: " + ", ".join(f"{k} x{n}" for k, n in r["reject_reasons"].items()))
+    return "\n".join(lines)
+
+
 def _mark(doc_id, status, error=None):
     state = load_state()
     prev = state["docs"].get(doc_id, {})
@@ -350,6 +379,8 @@ def main(argv=None):
     p.add_argument("--fixture", action="store_true")
     p.add_argument("--stub")
     sub.add_parser("build-site")
+    p = sub.add_parser("report", help="markdown summary of one processed document (quality + tokens, turns, time)")
+    p.add_argument("doc_id")
     sub.add_parser("claude-path", help="show which claude CLI the pipeline will use, and the exact login command")
     a = ap.parse_args(argv)
 
@@ -369,6 +400,8 @@ def main(argv=None):
         print(json.dumps(redecide(a.doc_id), indent=2))
     elif a.cmd == "nightly":
         nightly(a.source, a.days, a.max_docs, a.loop_cap, a.fixture, a.stub)
+    elif a.cmd == "report":
+        print(report_markdown(a.doc_id))
     elif a.cmd == "claude-path":
         try:
             path, how = find_claude()

@@ -1,40 +1,81 @@
-# Nightly pipeline. DRAFT: manual trigger only until T-1 is approved.
-# Auth: Claude subscription. Needs repo secret CLAUDE_CODE_OAUTH_TOKEN, the output of
-# `claude setup-token` (valid one year), under Settings > Secrets and variables > Actions.
+# Step 1 of T-1: ONE manual run to prove the subscription token and the pipeline work on GitHub's
+# runners. No schedule yet, no commit-back, no Pages. The cron goes in only after this succeeds.
+#
+# Safety for a public repo that holds a token secret:
+#   - triggers: workflow_dispatch only (no pull_request / pull_request_target / push / issue_comment),
+#     so nobody's fork or comment can run it. Dispatch needs write access to this repo.
+#   - permissions: contents: read, nothing else.
+#   - every action is pinned to a full commit SHA (tag in the comment).
+#   - the token is set on exactly one step; inputs reach the shell only as env vars, validated first.
+# Auth: Claude subscription. Repo secret CLAUDE_CODE_OAUTH_TOKEN (from `claude setup-token`).
 name: nightly
 
 on:
   workflow_dispatch:
-  # T-1 turns this on, after the user's OK:
-  # schedule:
-  #   - cron: "30 7 * * *"   # 07:30 UTC = 2:30 AM CDT / 1:30 AM CST
+    inputs:
+      since:
+        description: "First meeting date to look at (YYYY-MM-DD)"
+        required: true
+        default: "2026-10-22"
+      until:
+        description: "Day after the last meeting date (YYYY-MM-DD)"
+        required: true
+        default: "2026-10-23"
+      doc_id:
+        description: "Document to run through the agents"
+        required: true
+        default: "kc-19561-minutes"
+  # T-1 turns the schedule on after this manual run succeeds and the user says so.
+
+permissions:
+  contents: read
 
 concurrency:
   group: nightly
   cancel-in-progress: false
 
-permissions:
-  contents: write   # T-1: commit data/ back
-  pages: write
-  id-token: write
-
 jobs:
   run:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-python@v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: "3.12"
       - run: pip install -r requirements.txt
-      - run: npm install -g @anthropic-ai/claude-code@2.1.299
+      - run: npm install -g @anthropic-ai/claude-code@2.1.312
+      - run: claude --version
       - run: python scripts/check.py
-      - name: Pipeline
+      - name: Check the inputs
+        env:
+          SINCE: ${{ inputs.since }}
+          UNTIL: ${{ inputs.until }}
+          DOC_ID: ${{ inputs.doc_id }}
+        run: |
+          [[ "$SINCE" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]] || { echo "bad since"; exit 1; }
+          [[ "$UNTIL" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]] || { echo "bad until"; exit 1; }
+          [[ "$DOC_ID" =~ ^kc-[0-9]+-(minutes|agenda)$ ]] || { echo "bad doc_id"; exit 1; }
+      - name: Ingest and run the three agents
         env:
           CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          # No SHOWME_BARE: bare mode ignores OAuth. Don't also set ANTHROPIC_API_KEY,
-          # it outranks the token and would switch billing to the API.
-        run: python -m pipeline.run nightly --days 3 --max-docs 4 --loop-cap 4.00
-      # T-1: commit data/state.json, data/published/, data/metrics.jsonl; then
-      # actions/upload-pages-artifact (path: site) + actions/deploy-pages.
+          SINCE: ${{ inputs.since }}
+          UNTIL: ${{ inputs.until }}
+          DOC_ID: ${{ inputs.doc_id }}
+          SHOWME_DATA_DIR: ${{ runner.temp }}/showme-data
+          SHOWME_SITE_DIR: ${{ runner.temp }}/showme-site
+        run: |
+          python -m pipeline.run ingest --since "$SINCE" --until "$UNTIL" --limit 1
+          python -m pipeline.run process "$DOC_ID"
+          python -m pipeline.run report "$DOC_ID" | tee -a "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: showme-run
+          path: |
+            ${{ runner.temp }}/showme-data/published
+            ${{ runner.temp }}/showme-data/work/*/report.json
+            ${{ runner.temp }}/showme-data/work/*/usage_meta.json
+          retention-days: 7
+          if-no-files-found: error

@@ -1,0 +1,82 @@
+"""The workflow runs on a public repo that holds a token secret. These pin what makes that safe,
+and the report command the workflow uses for its summary."""
+
+import os
+import re
+import unittest
+from datetime import date
+
+from pipeline import paths
+from pipeline.run import nightly, report_markdown
+from tests.helpers import DOC_ID, STUB, TempDataTest
+
+WF = os.path.join(paths.ROOT, ".github", "workflows", "nightly.yml")
+
+
+def workflow():
+    with open(WF, encoding="utf-8") as f:
+        return f.read().replace("\r\n", "\n")
+
+
+def active_lines(text):
+    return [ln for ln in text.splitlines() if not ln.lstrip().startswith("#")]
+
+
+class WorkflowSafetyTests(unittest.TestCase):
+    def setUp(self):
+        self.text = workflow()
+        self.lines = active_lines(self.text)
+
+    def test_triggers_are_manual_only(self):
+        on = self.text.split("\non:\n", 1)[1].split("\npermissions:", 1)[0]
+        self.assertIn("workflow_dispatch:", on)
+        for bad in ("pull_request", "pull_request_target", "push:", "issue_comment", "workflow_run", "schedule:", "repository_dispatch"):
+            self.assertNotIn(bad, "\n".join(active_lines(on)), bad)
+
+    def test_permissions_are_read_only(self):
+        block = self.text.split("\npermissions:\n", 1)[1].split("\n\n", 1)[0].strip().splitlines()
+        self.assertEqual([b.strip() for b in block], ["contents: read"])
+        for bad in ("write", "id-token", "pages", "actions:"):
+            self.assertNotIn(bad, "\n".join(self.lines).split("jobs:")[0].split("permissions:")[1], bad)
+
+    def test_every_action_is_pinned_to_a_commit_sha(self):
+        uses = [re.search(r"uses:\s*(\S+)", ln).group(1) for ln in self.lines if "uses:" in ln]
+        self.assertGreaterEqual(len(uses), 3)
+        for u in uses:
+            self.assertRegex(u, r"^[\w.-]+/[\w.-]+@[0-9a-f]{40}$", u)
+
+    def test_the_token_is_set_on_exactly_one_step_and_never_in_a_script(self):
+        refs = [ln for ln in self.lines if "secrets." in ln]
+        self.assertEqual([r.strip() for r in refs], ["CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}"])
+        self.assertNotIn("ANTHROPIC_API_KEY", "\n".join(self.lines))
+        self.assertNotIn("SHOWME_BARE", "\n".join(self.lines))
+
+    def test_inputs_reach_the_shell_only_as_validated_env_vars(self):
+        for ln in self.lines:
+            if "inputs." in ln or "github.event" in ln:
+                self.assertRegex(ln, r"^\s+[A-Z_]+: \$\{\{ inputs\.\w+ \}\}$", ln)
+        self.assertIn("bad doc_id", self.text)
+
+    def test_checkout_does_not_keep_credentials_and_the_job_has_a_timeout(self):
+        self.assertIn("persist-credentials: false", self.text)
+        self.assertIn("timeout-minutes:", self.text)
+
+    def test_the_run_never_touches_the_repos_own_data(self):
+        self.assertIn("SHOWME_DATA_DIR: ${{ runner.temp }}/showme-data", self.text)
+
+
+class ReportCommandTests(TempDataTest):
+    def test_report_is_tokens_turns_and_time_not_dollars(self):
+        nightly("kansascity", days=10, max_docs=4, loop_cap=4.0, fixture=True, stub_dir=STUB, today=date(2026, 10, 29))
+        md = report_markdown(DOC_ID)
+        self.assertIn("tokens in", md)
+        self.assertIn("turns", md)
+        self.assertIn("facts: 7 extracted, 3 passed", md)
+        self.assertIn("voted-item coverage: 1 of", md)
+        self.assertIn("fact-checker flags: 4 of 7", md)
+        self.assertNotIn("$", md)
+        self.assertNotIn("cost", md.lower())
+
+
+if __name__ == "__main__":
+    unittest.main()
