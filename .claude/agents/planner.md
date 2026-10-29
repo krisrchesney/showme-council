@@ -18,7 +18,7 @@ Given a feature idea:
    "blocked by T-x".
 3. Append the tickets to TASKS.md under "Ready", using the template there. Each
    one needs a "Done when" list a reviewer can check without asking anyone, and
-   a line saying whether it costs money to verify (any real agent run does).
-4. Reply with a short table: ticket, files/functions it owns, blocked by, paid run needed.
+   a line saying whether verifying it uses plan usage (any real agent run does).
+4. Reply with a short table: ticket, files/functions it owns, blocked by, uses plan usage.
 
 Keep tickets small. One afternoon for a person is a good upper limit.

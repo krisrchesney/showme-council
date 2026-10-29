@@ -5,7 +5,7 @@ people and for the pipeline). Each call is:
 
     claude -p <task> --agents <json built from the .md files> --agent <name>
            --output-format json --json-schema schemas/<schema>.json
-           --tools "" --max-budget-usd <cap> --no-session-persistence ...
+           --tools "" --max-budget-usd <loop cap> --no-session-persistence ...
 
 with the document payload on stdin. No tools: the agents only read what they're given
 and return JSON, so a prompt injection in a PDF has nothing to act with.
@@ -49,14 +49,14 @@ def load_schema(schema):
         return json.load(f)
 
 
-def build_command(name, schema, agents_file, max_usd):
+def build_command(name, schema, agents_file, loop_cap):
     exe = os.environ.get("CLAUDE_BIN", "claude")
     cmd = [exe, "-p", TASK,
            "--agents", agents_file, "--agent", name,
            "--output-format", "json",
            "--json-schema", json.dumps(load_schema(schema), separators=(",", ":")),
            "--tools", "",
-           "--max-budget-usd", f"{max_usd:.2f}",
+           "--max-budget-usd", f"{loop_cap:.2f}",   # runaway-loop tripwire, API-equivalent units
            "--no-session-persistence", "--strict-mcp-config", "--disable-slash-commands",
            "--effort", os.environ.get("SHOWME_EFFORT", "medium")]
     if os.environ.get("SHOWME_BARE") == "1":
@@ -105,13 +105,14 @@ def _structured(resp):
     raise AgentOutputError(f"no structured output; result was: {txt[:200]!r}")
 
 
-def run_agent(name, schema, payload, out_dir, max_usd, stub_dir=None, timeout=900, model=None):
+def run_agent(name, schema, payload, out_dir, loop_cap, stub_dir=None, timeout=900, model=None):
     """Return (output_dict, usage_dict). Also writes <out_dir>/<name>.response.json.
     `model` overrides the agent frontmatter model (the user's explicit escalation)."""
     os.makedirs(out_dir, exist_ok=True)
     if stub_dir:
         with open(os.path.join(stub_dir, f"{name}.json"), encoding="utf-8") as f:
-            return json.load(f), {"stub": True, "cost_usd": 0.0}
+            return json.load(f), {"stub": True, "tokens_in": 0, "tokens_out": 0, "num_turns": 0,
+                                  "duration_s": 0.0, "api_equiv_usd": 0.0, "models": []}
 
     agent = load_agent(name)
     if model:
@@ -123,7 +124,7 @@ def run_agent(name, schema, payload, out_dir, max_usd, stub_dir=None, timeout=90
     env = clean_env()
     env["SHOWME_PIPELINE"] = "1"  # tells the Stop hook to stay out of pipeline runs
     t0 = time.time()
-    proc = subprocess.run(build_command(name, schema, agents_file, max_usd),
+    proc = subprocess.run(build_command(name, schema, agents_file, loop_cap),
                           input=json.dumps(payload, ensure_ascii=False), capture_output=True,
                           text=True, encoding="utf-8", timeout=timeout, env=env, cwd=paths.ROOT)
     with open(os.path.join(out_dir, f"{name}.response.json"), "w", encoding="utf-8") as f:
@@ -134,8 +135,14 @@ def run_agent(name, schema, payload, out_dir, max_usd, stub_dir=None, timeout=90
         raise RuntimeError(f"{name}: claude exited {proc.returncode}: {(proc.stderr or proc.stdout)[:500]}")
     if resp.get("is_error"):
         raise RuntimeError(f"{name}: {resp.get('subtype')}: {str(resp.get('result'))[:500]}")
+    u = resp.get("usage") or {}
     usage = {
-        "cost_usd": resp.get("total_cost_usd"),
+        "tokens_in": (u.get("input_tokens") or 0) + (u.get("cache_creation_input_tokens") or 0)
+                     + (u.get("cache_read_input_tokens") or 0),
+        "tokens_out": u.get("output_tokens") or 0,
+        # Claude Code's estimate of what these tokens would cost at API rates. For comparing
+        # models and runs only; on the subscription nothing is billed per token.
+        "api_equiv_usd": resp.get("total_cost_usd") or 0.0,
         "duration_s": round(time.time() - t0, 1),
         "num_turns": resp.get("num_turns"),
         "usage": resp.get("usage"),

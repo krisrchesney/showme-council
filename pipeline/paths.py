@@ -9,7 +9,7 @@ RAW = os.path.join(DATA, "raw")              # ingester output: one folder per d
 WORK = os.path.join(DATA, "work")            # agent handoff files: facts, summary, verdicts, report
 PUBLISHED = os.path.join(DATA, "published")  # accepted claims + sentences only; the site is built from this
 STATE = os.path.join(DATA, "state.json")     # which documents are already processed
-METRICS = os.path.join(DATA, "metrics.jsonl")  # one line per processed document: pass/reject counts, cost
+METRICS = os.path.join(DATA, "metrics.jsonl")  # one line per processed document: pass/reject counts, tokens, time
 SITE = os.environ.get("SHOWME_SITE_DIR") or os.path.join(ROOT, "site")
 
 AGENTS_DIR = os.path.join(ROOT, ".claude", "agents")

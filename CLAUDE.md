@@ -2,7 +2,7 @@
 
 A nightly pipeline turns Kansas City Council records (Legistar API + PDFs) into
 fact-checked plain-language summaries on a static site. Read DESIGN.md for the
-stages, handoff files, scoring and cost. Python 3.12; the only dependency is
+stages, handoff files, scoring and plan usage. Python 3.12; the only dependency is
 `pypdf` (requirements.txt).
 
 ## Workflow
@@ -19,13 +19,17 @@ stages, handoff files, scoring and cost. Python 3.12; the only dependency is
 - When a ticket is approved, report in one line what went wrong or what the
   reviewer caught, so it can be added to "Lessons" below.
 
-## Spending money
-- Any run without `--stub` calls Claude on the user's subscription and uses plan
-  usage. Run `python -m pipeline.run estimate <doc>` and get the user's OK in chat first.
+## Plan usage
+Runs on the user's Claude subscription. Report usage (tokens, turns, time), not dollars.
+- Any run without `--stub` draws on the plan's usage window. Before the first real run in a
+  session, say which model and the expected tokens (`python -m pipeline.run estimate <doc>`).
+  That's a heads-up, not a budget approval. Never describe usage as cost or price.
 - Auth is the subscription (`claude auth login` locally, `CLAUDE_CODE_OAUTH_TOKEN` in CI).
-  Don't switch to an API key or add `--bare` without the user asking.
+  Don't switch to an API key (it bills per token) or add `--bare` without the user asking. The
+  runner strips `ANTHROPIC_API_KEY` / `ANTHROPIC_AUTH_TOKEN` so nothing bills per token by accident.
 - Tests and reviews use `--fixture` and `--stub tests/fixtures/kansascity/stub` only.
-- Keep `--max-budget-usd` on every agent call and the per-document / per-night caps in run.py.
+- `--max-budget-usd` on every agent call and the per-document / per-night `--loop-cap` are
+  runaway-loop tripwires in API-equivalent units, not spending limits. Keep them.
 
 ## Models
 - Pipeline and dev agents default to Sonnet 5.5. Never switch an agent to Opus, or pass

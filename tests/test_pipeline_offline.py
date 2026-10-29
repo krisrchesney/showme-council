@@ -12,7 +12,7 @@ from tests.helpers import DOC_ID, STUB, TempDataTest
 
 class NightlyOfflineTests(TempDataTest):
     def run_night(self):
-        return nightly("kansascity", days=10, max_docs=4, max_usd=4.0, fixture=True,
+        return nightly("kansascity", days=10, max_docs=4, loop_cap=4.0, fixture=True,
                        stub_dir=STUB, today=date(2026, 10, 29))
 
     def test_one_night_publishes_only_accepted_claims(self):
