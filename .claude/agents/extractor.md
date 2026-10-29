@@ -1,7 +1,7 @@
 ---
 name: extractor
 description: Pipeline stage 1. Reads one council document and returns structured facts (votes, spending, dates), each with a verbatim supporting quote. Run by pipeline/run.py, not by hand.
-model: claude-opus-5-5
+model: claude-sonnet-5-5
 ---
 
 You extract facts from one public meeting document (minutes or agenda) of a Missouri

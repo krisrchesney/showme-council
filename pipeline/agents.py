@@ -87,6 +87,10 @@ def clean_env():
     return env
 
 
+class AgentOutputError(RuntimeError):
+    """The agent ran but returned nothing that parses against its schema."""
+
+
 def _structured(resp):
     if isinstance(resp.get("structured_output"), dict):
         return resp["structured_output"]
@@ -94,18 +98,24 @@ def _structured(resp):
     txt = resp.get("result") or ""
     m = re.search(r"\{.*\}", txt, re.S)
     if m:
-        return json.loads(m.group(0))
-    raise RuntimeError(f"no structured output; result was: {txt[:300]!r}")
+        try:
+            return json.loads(m.group(0))
+        except json.JSONDecodeError as e:
+            raise AgentOutputError(f"unparseable JSON in result: {e}") from e
+    raise AgentOutputError(f"no structured output; result was: {txt[:200]!r}")
 
 
-def run_agent(name, schema, payload, out_dir, max_usd, stub_dir=None, timeout=900):
-    """Return (output_dict, usage_dict). Also writes <out_dir>/<name>.response.json."""
+def run_agent(name, schema, payload, out_dir, max_usd, stub_dir=None, timeout=900, model=None):
+    """Return (output_dict, usage_dict). Also writes <out_dir>/<name>.response.json.
+    `model` overrides the agent frontmatter model (the user's explicit escalation)."""
     os.makedirs(out_dir, exist_ok=True)
     if stub_dir:
         with open(os.path.join(stub_dir, f"{name}.json"), encoding="utf-8") as f:
             return json.load(f), {"stub": True, "cost_usd": 0.0}
 
     agent = load_agent(name)
+    if model:
+        agent["model"] = model
     agents_file = os.path.join(out_dir, "_agents.json")
     with open(agents_file, "w", encoding="utf-8") as f:
         json.dump({name: agent}, f)
@@ -130,5 +140,6 @@ def run_agent(name, schema, payload, out_dir, max_usd, stub_dir=None, timeout=90
         "num_turns": resp.get("num_turns"),
         "usage": resp.get("usage"),
         "model_usage": resp.get("modelUsage"),
+        "models": sorted((resp.get("modelUsage") or {}).keys()),
     }
     return _structured(resp), usage

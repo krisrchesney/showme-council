@@ -1,0 +1,547 @@
+{
+  "meta": {
+    "doc_id": "kc-19561-minutes",
+    "source": "kansascity",
+    "body": "Council",
+    "date": "2026-10-22",
+    "kind": "minutes",
+    "pdf_url": "https://kansascity.legistar1.com/kansascity/meetings/2026/10/19561_M_Council_26-10-22_Meeting_Minutes.pdf",
+    "detail_url": "https://kansascity.legistar.com/MeetingDetail.aspx?LEGID=19561&GID=821&G=D2E89A09-8736-4EFB-B4AE-572E0903BD5A",
+    "extra": {
+      "event_id": 19561
+    }
+  },
+  "headline": "Council passes two sewer bond ordinances and several spending measures",
+  "generated_at": "2026-10-29T14:02:59+00:00",
+  "sentences": [
+    {
+      "text": "The council passed Ordinances 260895 and 260896. Each one allows the city to issue up to $100,000,000 in Sanitary Sewer System Revenue Bonds (a way for the city to borrow money).",
+      "claim_ids": [
+        "c10",
+        "c11",
+        "c12",
+        "c13"
+      ]
+    },
+    {
+      "text": "Ordinance 260906 passed and adds $2,000,000.00 for the Blue Hills Townhomes project. Ordinance 260905 also passed and sets up a one-year $1,000,000.00 agreement with the Mid America Assistance Coalition to run the Water Services Department's Low-Income Assistance Program.",
+      "claim_ids": [
+        "c24",
+        "c25",
+        "c26",
+        "c27"
+      ]
+    },
+    {
+      "text": "Ordinance 260920 passed and allows up to $1,100,000.00 for audio and video upgrades at City Hall. Councilmember Willett voted no.",
+      "claim_ids": [
+        "c18",
+        "c19",
+        "c20"
+      ]
+    },
+    {
+      "text": "Ordinance 260918 passed and moves $485,424.00 from the Marijuana Sales Tax Fund to the Extreme Weather Program. Ordinance 260921 passed and puts $50,000.00 toward the Vacant Property Education Campaign.",
+      "claim_ids": [
+        "c15",
+        "c16",
+        "c21",
+        "c22"
+      ]
+    },
+    {
+      "text": "Ordinance 260913 passed and accepts a $486,054.54 federal Assistance to Firefighters Grant, with a City match of $48,605.46.",
+      "claim_ids": [
+        "c28",
+        "c29"
+      ]
+    },
+    {
+      "text": "The council adopted Resolution 260886, which sets its priorities for Public Safety Sales Tax funds; Councilmembers Willett and Rogers voted no. It also adopted Resolution 260887 on restoring Blue River Road and Resolution 260915, a Strategic Plan for the Hickman Mills area.",
+      "claim_ids": [
+        "c4",
+        "c5",
+        "c6",
+        "c7"
+      ]
+    }
+  ],
+  "claims": [
+    {
+      "id": "c1",
+      "type": "vote",
+      "statement": "The ordinance vacating sidewalk right-of-way in the Country Club Plaza area (260445) was held on the docket for two weeks.",
+      "quote": "Held on Docket until November 5th  10.22.2026 for two weeks",
+      "page": 4,
+      "matter_file": "260445",
+      "outcome": "held",
+      "amount_usd": null,
+      "code_checks": {
+        "api": "agree",
+        "quote_match": "exact"
+      }
+    },
+    {
+      "id": "c3",
+      "type": "vote",
+      "statement": "Resolution 260885 was adopted as substituted.",
+      "quote": "Authenticated Resolution 260885 cs\nA motion was made that this Resolution be Adopted as Substituted.. The motion \ncarried by the following vote:",
+      "page": 4,
+      "matter_file": "260885",
+      "outcome": "adopted",
+      "amount_usd": null,
+      "code_checks": {
+        "api": "agree",
+        "quote_match": "exact"
+      }
+    },
+    {
+      "id": "c4",
+      "type": "vote",
+      "statement": "Resolution 260887, on restoring Blue River Road, was adopted as substituted.",
+      "quote": "Authenticated Resolution 260887 cs\nA motion was made that this Resolution be Adopted as Substituted.. The motion \ncarried by the following vote:",
+      "page": 5,
+      "matter_file": "260887",
+      "outcome": "adopted",
+      "amount_usd": null,
+      "code_checks": {
+        "api": "agree",
+        "quote_match": "exact"
+      }
+    },
+    {
+      "id": "c5",
+      "type": "vote",
+      "statement": "Resolution 260886, setting the Council's funding priorities for Public Safety Sales Tax funds, was adopted as substituted.",
+      "quote": "Authenticated Ordinance 260886 cs\nA motion was made that this Resolution be Adopted as Substituted.. The motion \ncarried by the following vote:",
+      "page": 6,
+      "matter_file": "260886",
+      "outcome": "adopted",
+      "amount_usd": null,
+      "code_checks": {
+        "api": "agree",
+        "quote_match": "exact"
+      }
+    },
+    {
+      "id": "c6",
+      "type": "vote",
+      "statement": "Councilmembers Willett and Rogers voted no on Resolution 260886.",
+      "quote": "and Duncan\nAye:\nWillett, and RogersNay:",
+      "page": 6,
+      "matter_file": "260886",
+      "outcome": "adopted",
+      "amount_usd": null,
+      "code_checks": {
+        "api": "agree",
+        "quote_match": "exact"
+      }
+    },
+    {
+      "id": "c7",
+      "type": "vote",
+      "statement": "Resolution 260915, approving a Strategic Plan for the Hickman Mills area, was adopted.",
+      "quote": "Authenticated Resolution 260915\nA motion was made that this Resolution be Adopted.. The motion carried by the",
+      "page": 6,
+      "matter_file": "260915",
+      "outcome": "adopted",
+      "amount_usd": null,
+      "code_checks": {
+        "api": "agree",
+        "quote_match": "exact"
+      }
+    },
+    {
+      "id": "c8",
+      "type": "vote",
+      "statement": "Ordinance 260904, approving the Brooke Hills Fourth Plat, passed.",
+      "quote": "Authenticated Ordinance 260904\nA motion was made that this Ordinance be Passed.. The motion carried by the",
+      "page": 7,
+      "matter_file": "260904",
+      "outcome": "passed",
+      "amount_usd": null,
+      "code_checks": {
+        "api": "agree",
+        "quote_match": "exact"
+      }
+    },
+    {
+      "id": "c9",
+      "type": "vote",
+      "statement": "Ordinance 260911, authorizing the City Manager to apply for and accept FAA grants, passed.",
+      "quote": "Authenticated Ordinance 260911\nA motion was made that this Ordinance be Passed.. The motion carried by the",
+      "page": 9,
+      "matter_file": "260911",
+      "outcome": "passed",
+      "amount_usd": null,
+      "code_checks": {
+        "api": "agree",
+        "quote_match": "exact"
+      }
+    },
+    {
+      "id": "c10",
+      "type": "spending",
+      "statement": "Ordinance 260895 authorizes issuing up to $100,000,000 in Sanitary Sewer System Revenue Bonds, Series 2026A.",
+      "quote": "Authorizing the issuance of not to exceed $ 100,000,000.0 principal amount of Sanitary \nSewer System Revenue Bonds (State of Missouri - Direct Loan Program) Series 2026A",
+      "page": 11,
+      "matter_file": "260895",
+      "outcome": null,
+      "amount_usd": 100000000,
+      "code_checks": {
+        "api": "unchecked",
+        "quote_match": "exact"
+      }
+    },
+    {
+      "id": "c11",
+      "type": "vote",
+      "statement": "Ordinance 260895 passed.",
+      "quote": "Authenticated Ordinance 260895\nA motion was made that this Ordinance be Passed.. The motion carried by the",
+      "page": 11,
+      "matter_file": "260895",
+      "outcome": "passed",
+      "amount_usd": null,
+      "code_checks": {
+        "api": "agree",
+        "quote_match": "exact"
+      }
+    },
+    {
+      "id": "c12",
+      "type": "spending",
+      "statement": "Ordinance 260896 authorizes issuing up to $100,000,000.00 in Sanitary Sewer System Revenue Bonds, Series 2026B.",
+      "quote": "Authorizing the issuance of not to exceed $ 100,000,000.00 principal amount of Sanitary \nSewer System Revenue Bonds (State of Missouri - Direct Loan Program) Series 2026B",
+      "page": 11,
+      "matter_file": "260896",
+      "outcome": null,
+      "amount_usd": 100000000,
+      "code_checks": {
+        "api": "unchecked",
+        "quote_match": "exact"
+      }
+    },
+    {
+      "id": "c13",
+      "type": "vote",
+      "statement": "Ordinance 260896 passed.",
+      "quote": "Authenticated Ordinance 260896\nA motion was made that this Ordinance be Passed.. The motion carried by the",
+      "page": 11,
+      "matter_file": "260896",
+      "outcome": "passed",
+      "amount_usd": null,
+      "code_checks": {
+        "api": "agree",
+        "quote_match": "exact"
+      }
+    },
+    {
+      "id": "c15",
+      "type": "spending",
+      "statement": "Ordinance 260918 cuts $485,424.00 in Marijuana Sales Tax Fund appropriations and reappropriates it for the Extreme Weather Program.",
+      "quote": "reducing appropriations of the Marijuana Sales Tax \nFund (2190) by $485,424.00 and reappropriating the same for the purpose of supporting the \nExtreme Weather Program",
+      "page": 12,
+      "matter_file": "260918",
+      "outcome": null,
+      "amount_usd": 485424,
+      "code_checks": {
+        "api": "unchecked",
+        "quote_match": "exact"
+      }
+    },
+    {
+      "id": "c16",
+      "type": "vote",
+      "statement": "Ordinance 260918 passed.",
+      "quote": "Authenticated Ordinance 260918\nA motion was made that this Ordinance be Passed.. The motion carried by the",
+      "page": 12,
+      "matter_file": "260918",
+      "outcome": "passed",
+      "amount_usd": null,
+      "code_checks": {
+        "api": "agree",
+        "quote_match": "exact"
+      }
+    },
+    {
+      "id": "c18",
+      "type": "spending",
+      "statement": "Ordinance 260920 authorizes spending up to $1,100,000.00 on audio and video system upgrades at City Hall.",
+      "quote": "Authorizing the City Manager to expend an amount not to exceed $ 1,100,000.00 for the \npurpose of audio and video system upgrades at City Hall",
+      "page": 13,
+      "matter_file": "260920",
+      "outcome": null,
+      "amount_usd": 1100000,
+      "code_checks": {
+        "api": "unchecked",
+        "quote_match": "exact"
+      }
+    },
+    {
+      "id": "c19",
+      "type": "vote",
+      "statement": "Ordinance 260920 passed.",
+      "quote": "Authenticated Ordinance 260920\nA motion was made that this Ordinance be Passed.. The motion carried by the",
+      "page": 13,
+      "matter_file": "260920",
+      "outcome": "passed",
+      "amount_usd": null,
+      "code_checks": {
+        "api": "agree",
+        "quote_match": "exact"
+      }
+    },
+    {
+      "id": "c20",
+      "type": "vote",
+      "statement": "Councilmember Willett voted no on Ordinance 260920.",
+      "quote": "WillettNay:\nRobinsonExcused:",
+      "page": 14,
+      "matter_file": "260920",
+      "outcome": "passed",
+      "amount_usd": null,
+      "code_checks": {
+        "api": "agree",
+        "quote_match": "exact"
+      }
+    },
+    {
+      "id": "c21",
+      "type": "spending",
+      "statement": "Ordinance 260921 appropriates $50,000.00 from the Development Services Fund for the Vacant Property Education Campaign.",
+      "quote": "Appropriating $ 50,000.00 from the Unappropriated Fund Balance of the Development \nServices Fund ( 2210) for the Vacant Property Education Campaign",
+      "page": 14,
+      "matter_file": "260921",
+      "outcome": null,
+      "amount_usd": 50000,
+      "code_checks": {
+        "api": "unchecked",
+        "quote_match": "exact"
+      }
+    },
+    {
+      "id": "c22",
+      "type": "vote",
+      "statement": "Ordinance 260921 passed.",
+      "quote": "Authenticated Ordinance 260921\nA motion was made that this Ordinance be Passed.. The motion carried by the",
+      "page": 14,
+      "matter_file": "260921",
+      "outcome": "passed",
+      "amount_usd": null,
+      "code_checks": {
+        "api": "agree",
+        "quote_match": "exact"
+      }
+    },
+    {
+      "id": "c23",
+      "type": "vote",
+      "statement": "Measure 260927, applying the IAP2 public participation approach to budget processes, passed.",
+      "quote": "Authenticated Ordinance 260927\nA motion was made that this Resolution be Passed.. The motion carried by the",
+      "page": 14,
+      "matter_file": "260927",
+      "outcome": "passed",
+      "amount_usd": null,
+      "code_checks": {
+        "api": "agree",
+        "quote_match": "exact"
+      }
+    },
+    {
+      "id": "c24",
+      "type": "spending",
+      "statement": "Ordinance 260905 authorizes a one-year $1,000,000.00 Cooperative Agreement with the Mid America Assistance Coalition to run the Water Services Department's Low-Income Assistance Program.",
+      "quote": "Authorizing the Manager of Procurement Services to execute a one ( 1) year $1,000,000.00 \nCooperative Agreement with the Mid America Assistance Coalition to administer the Water \nServices Department’s Low-Income Assistance Program",
+      "page": 15,
+      "matter_file": "260905",
+      "outcome": null,
+      "amount_usd": 1000000,
+      "code_checks": {
+        "api": "unchecked",
+        "quote_match": "exact"
+      }
+    },
+    {
+      "id": "c25",
+      "type": "vote",
+      "statement": "Ordinance 260905 passed.",
+      "quote": "Authenticated Ordinance 260905\nA motion was made that this Ordinance be Passed.. The motion carried by the",
+      "page": 15,
+      "matter_file": "260905",
+      "outcome": "passed",
+      "amount_usd": null,
+      "code_checks": {
+        "api": "agree",
+        "quote_match": "exact"
+      }
+    },
+    {
+      "id": "c26",
+      "type": "spending",
+      "statement": "Ordinance 260906 appropriates $2,000,000.00 from the Unappropriated Fund Balance for more funding to the Blue Hills Townhomes project.",
+      "quote": "appropriating $2,000,000.00 from the \nUnappropriated Fund Balance for additional funding to the Blue Hills Townhomes project",
+      "page": 16,
+      "matter_file": "260906",
+      "outcome": null,
+      "amount_usd": 2000000,
+      "code_checks": {
+        "api": "unchecked",
+        "quote_match": "exact"
+      }
+    },
+    {
+      "id": "c27",
+      "type": "vote",
+      "statement": "Ordinance 260906 passed.",
+      "quote": "Authenticated Ordinance 260906\nA motion was made that this Ordinance be Passed.. The motion carried by the",
+      "page": 16,
+      "matter_file": "260906",
+      "outcome": "passed",
+      "amount_usd": null,
+      "code_checks": {
+        "api": "agree",
+        "quote_match": "exact"
+      }
+    },
+    {
+      "id": "c28",
+      "type": "spending",
+      "statement": "Ordinance 260913 accepts a $486,054.54 federal Assistance to Firefighters Grant, with a City match of $48,605.46.",
+      "quote": "Authorizing the acceptance of a $ 486,054.54 grant from the United States Department of \nHomeland Security Fiscal Year (FY) 2025 Assistance to Firefighters Grant (AFG)  \nProgram, including a City match of $ 48,605.46",
+      "page": 16,
+      "matter_file": "260913",
+      "outcome": null,
+      "amount_usd": 486054.54,
+      "code_checks": {
+        "api": "unchecked",
+        "quote_match": "exact"
+      }
+    },
+    {
+      "id": "c29",
+      "type": "vote",
+      "statement": "Ordinance 260913 passed.",
+      "quote": "Authenticated Ordinance 260913\nA motion was made that this Ordinance be Passed.. The motion carried by the",
+      "page": 16,
+      "matter_file": "260913",
+      "outcome": "passed",
+      "amount_usd": null,
+      "code_checks": {
+        "api": "agree",
+        "quote_match": "exact"
+      }
+    },
+    {
+      "id": "c30",
+      "type": "vote",
+      "statement": "Ordinance 260914, approving the Twenty-Third Amendment to the KCI Corridor Tax Increment Financing Plan, passed.",
+      "quote": "Authenticated Ordinance 260914\nA motion was made that this Ordinance be Passed.. The motion carried by the",
+      "page": 17,
+      "matter_file": "260914",
+      "outcome": "passed",
+      "amount_usd": null,
+      "code_checks": {
+        "api": "agree",
+        "quote_match": "exact"
+      }
+    },
+    {
+      "id": "c31",
+      "type": "vote",
+      "statement": "Ordinance 260922, approving the Fifteenth Amendment to the North Oak Tax Increment Financing Plan, passed.",
+      "quote": "Authenticated Ordinance 260922\nA motion was made that this Ordinance be Passed.. The motion carried by the",
+      "page": 17,
+      "matter_file": "260922",
+      "outcome": "passed",
+      "amount_usd": null,
+      "code_checks": {
+        "api": "agree",
+        "quote_match": "exact"
+      }
+    },
+    {
+      "id": "c32",
+      "type": "vote",
+      "statement": "Ordinance 260908, extending a contract with Technology Group Solutions, LLC, passed.",
+      "quote": "Authenticated Ordinance 260908\nA motion was made that this Ordinance be Passed.. The motion carried by the",
+      "page": 18,
+      "matter_file": "260908",
+      "outcome": "passed",
+      "amount_usd": null,
+      "code_checks": {
+        "api": "agree",
+        "quote_match": "exact"
+      }
+    },
+    {
+      "id": "c33",
+      "type": "vote",
+      "statement": "Ordinance 260909, covering a supply contract with Kansas City Winwater Company, passed.",
+      "quote": "Authenticated Ordinance 260909\nA motion was made that this Ordinance be Passed.. The motion carried by the",
+      "page": 19,
+      "matter_file": "260909",
+      "outcome": "passed",
+      "amount_usd": null,
+      "code_checks": {
+        "api": "agree",
+        "quote_match": "exact"
+      }
+    },
+    {
+      "id": "c36",
+      "type": "vote",
+      "statement": "Ordinance 260941 was referred to the Finance, Governance and Public Safety Committee, due back on 10/27/2026.",
+      "quote": "Ozark2 The Constant Company IDP - Docket Memo 0.2.4\nreferredto the Finance, Governance and Public Safety Committee due back on \n10/27/2026",
+      "page": 21,
+      "matter_file": "260941",
+      "outcome": "referred",
+      "amount_usd": null,
+      "code_checks": {
+        "api": "agree",
+        "quote_match": "exact"
+      }
+    },
+    {
+      "id": "c37",
+      "type": "other",
+      "statement": "Ordinance 260934 would authorize a $2,776,512.65 contract amendment with Burns & McDonnell for the Northland Transmission, Pumping and Storage project, bringing the total contract to $13,293,901.85.",
+      "quote": "execute a $ 2,776,512.65 Amendment No. 2 \nfor preconstruction and construction services to the progressive design-build contract with \nBurns & McDonnell Engineering Company, Inc., for the Northland Transmission, Pumping \nand Storage project for a total contract amount of $ 13,293,901.85",
+      "page": 23,
+      "matter_file": "260934",
+      "outcome": null,
+      "amount_usd": 2776512.65,
+      "code_checks": {
+        "api": "unchecked",
+        "quote_match": "exact"
+      }
+    }
+  ],
+  "report": {
+    "doc_id": "kc-19561-minutes",
+    "claims_extracted": 37,
+    "claims_accepted": 32,
+    "claims_rejected": 5,
+    "claim_pass_rate": 0.865,
+    "reject_reasons": {
+      "checker_partial": 1,
+      "number_not_in_quote": 4
+    },
+    "code_vs_checker": {
+      "compared": 37,
+      "agree": 32
+    },
+    "sentences_written": 8,
+    "sentences_published": 6,
+    "sentence_pass_rate": 0.75,
+    "headline_checked": true,
+    "at": "2026-10-29T14:02:59+00:00",
+    "stub": false,
+    "cost_usd": 0.7736,
+    "cost_by_stage": {
+      "extractor": 0.344768,
+      "summarizer": 0.092796,
+      "fact-checker": 0.336084
+    },
+    "redecided_at": "2026-10-29T14:07:37+00:00"
+  }
+}

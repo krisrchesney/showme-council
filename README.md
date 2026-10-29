@@ -32,7 +32,9 @@ python -m pipeline.run build-site                         # -> site/index.html
 
 Real runs use a Claude subscription (Pro/Max): log the CLI in with `claude auth login`,
 or set `CLAUDE_CODE_OAUTH_TOKEN` from `claude setup-token` (this is what CI uses). They
-draw on plan usage, not an API bill. Set `CLAUDE_BIN` if `claude` isn't on PATH.
+draw on plan usage, not an API bill. Use the standalone CLI (`irm https://claude.ai/install.ps1 | iex`
+on Windows), not the copy bundled inside the desktop app; set `CLAUDE_BIN` to its full path
+(e.g. `%USERPROFILE%\.local\bin\claude.exe`) if `claude` isn't on PATH.
 (An API-key fork can set `ANTHROPIC_API_KEY` and `SHOWME_BARE=1` instead.)
 
 Unofficial and AI-written. Always check the linked official record. Source records:
