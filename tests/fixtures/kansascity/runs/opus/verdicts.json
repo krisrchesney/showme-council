@@ -1,0 +1,236 @@
+{
+  "claims": [
+    {
+      "id": "c1",
+      "verdict": "SUPPORTED",
+      "reason": "Page 4 says 260445 was 'Held on Docket until November 5th ... for two weeks'."
+    },
+    {
+      "id": "c2",
+      "verdict": "SUPPORTED",
+      "reason": "The resolution text on page 4 says it directs the City Manager to identify up to $15,000,000.00 for the 63rd & Prospect Development."
+    },
+    {
+      "id": "c3",
+      "verdict": "SUPPORTED",
+      "reason": "Page 4 records that the motion to adopt 260885 as substituted carried."
+    },
+    {
+      "id": "c4",
+      "verdict": "SUPPORTED",
+      "reason": "Page 5 records that the motion to adopt 260887, the Blue River Road resolution, as substituted carried."
+    },
+    {
+      "id": "c5",
+      "verdict": "SUPPORTED",
+      "reason": "Page 6 titles 260886 a RESOLUTION on Public Safety Sales Tax funding priorities and records it as adopted as substituted."
+    },
+    {
+      "id": "c6",
+      "verdict": "SUPPORTED",
+      "reason": "Page 6 lists 'Willett, and Rogers' under Nay for 260886."
+    },
+    {
+      "id": "c7",
+      "verdict": "SUPPORTED",
+      "reason": "Pages 6-7 record that the Hickman Mills Strategic Plan resolution 260915 was adopted."
+    },
+    {
+      "id": "c8",
+      "verdict": "SUPPORTED",
+      "reason": "Page 7 records that the Brooke Hills Fourth Plat ordinance 260904 passed."
+    },
+    {
+      "id": "c9",
+      "verdict": "SUPPORTED",
+      "reason": "Page 9 records that the FAA grant ordinance 260911 passed."
+    },
+    {
+      "id": "c10",
+      "verdict": "SUPPORTED",
+      "reason": "Page 11 authorizes not to exceed $100,000,000.0 in Series 2026A sanitary sewer revenue bonds under 260895."
+    },
+    {
+      "id": "c11",
+      "verdict": "SUPPORTED",
+      "reason": "Page 11 records that 260895 passed."
+    },
+    {
+      "id": "c12",
+      "verdict": "SUPPORTED",
+      "reason": "Page 11 authorizes not to exceed $100,000,000.00 in Series 2026B bonds under 260896."
+    },
+    {
+      "id": "c13",
+      "verdict": "SUPPORTED",
+      "reason": "Page 11 records that 260896 passed."
+    },
+    {
+      "id": "c14",
+      "verdict": "SUPPORTED",
+      "reason": "Page 12 describes 260916 as the First Quarter FY 2026-27 appropriations ordinance and records it as passed as substituted."
+    },
+    {
+      "id": "c15",
+      "verdict": "SUPPORTED",
+      "reason": "Page 12 reduces Marijuana Sales Tax Fund appropriations by $485,424.00 and reappropriates the money for the Extreme Weather Program."
+    },
+    {
+      "id": "c16",
+      "verdict": "SUPPORTED",
+      "reason": "Page 12 records that 260918 passed."
+    },
+    {
+      "id": "c17",
+      "verdict": "SUPPORTED",
+      "reason": "Page 13 records that 260919, which establishes Fund No. 2220 (the ProspectUs Fund), passed."
+    },
+    {
+      "id": "c18",
+      "verdict": "SUPPORTED",
+      "reason": "Page 13 authorizes spending not to exceed $1,100,000.00 on audio and video upgrades at City Hall."
+    },
+    {
+      "id": "c19",
+      "verdict": "SUPPORTED",
+      "reason": "Page 13 records that 260920 passed."
+    },
+    {
+      "id": "c20",
+      "verdict": "SUPPORTED",
+      "reason": "Page 14 lists 'WillettNay' in the vote record for 260920."
+    },
+    {
+      "id": "c21",
+      "verdict": "SUPPORTED",
+      "reason": "Page 14 appropriates $50,000.00 from the Development Services Fund for the Vacant Property Education Campaign."
+    },
+    {
+      "id": "c22",
+      "verdict": "SUPPORTED",
+      "reason": "Page 14 records that 260921 passed."
+    },
+    {
+      "id": "c23",
+      "verdict": "SUPPORTED",
+      "reason": "Pages 14-15 record that the IAP2 budget-process measure 260927 passed."
+    },
+    {
+      "id": "c24",
+      "verdict": "SUPPORTED",
+      "reason": "Page 15 authorizes a one-year $1,000,000.00 Cooperative Agreement with the Mid America Assistance Coalition for the Low-Income Assistance Program."
+    },
+    {
+      "id": "c25",
+      "verdict": "SUPPORTED",
+      "reason": "Page 15 records that 260905 passed."
+    },
+    {
+      "id": "c26",
+      "verdict": "SUPPORTED",
+      "reason": "Page 16 appropriates $2,000,000.00 from the Unappropriated Fund Balance for additional funding to the Blue Hills Townhomes project."
+    },
+    {
+      "id": "c27",
+      "verdict": "SUPPORTED",
+      "reason": "Page 16 records that 260906 passed."
+    },
+    {
+      "id": "c28",
+      "verdict": "SUPPORTED",
+      "reason": "Page 16 accepts a $486,054.54 grant from the US Department of Homeland Security with a City match of $48,605.46."
+    },
+    {
+      "id": "c29",
+      "verdict": "SUPPORTED",
+      "reason": "Pages 16-17 record that 260913 passed."
+    },
+    {
+      "id": "c30",
+      "verdict": "SUPPORTED",
+      "reason": "Page 17 records that the KCI Corridor TIF Twenty-Third Amendment ordinance passed."
+    },
+    {
+      "id": "c31",
+      "verdict": "SUPPORTED",
+      "reason": "Page 17 records that the North Oak TIF Fifteenth Amendment ordinance 260922 passed."
+    },
+    {
+      "id": "c32",
+      "verdict": "SUPPORTED",
+      "reason": "Page 18 records that 260908, a one-year extension with Technology Group Solutions, LLC, passed."
+    },
+    {
+      "id": "c33",
+      "verdict": "SUPPORTED",
+      "reason": "Page 19 records that 260909, the Kansas City Winwater Company supply contract, passed."
+    },
+    {
+      "id": "c34",
+      "verdict": "PARTIAL",
+      "reason": "The present-tense 'acknowledges' treats 260939 as enacted, but page 20 shows it was only introduced and referred to committee."
+    },
+    {
+      "id": "c35",
+      "verdict": "SUPPORTED",
+      "reason": "Page 21 describes 260941 as authorizing up to $572,500,000.00 in taxable industrial revenue bonds for The Constant Company at 3420 North Arlington Avenue, and the statement correctly says 'would'."
+    },
+    {
+      "id": "c36",
+      "verdict": "SUPPORTED",
+      "reason": "Page 21 records that 260941 was referred to the Finance, Governance and Public Safety Committee, due back on 10/27/2026."
+    },
+    {
+      "id": "c37",
+      "verdict": "SUPPORTED",
+      "reason": "Page 23 gives the $2,776,512.65 Amendment No. 2 with Burns & McDonnell and a total contract amount of $13,293,901.85."
+    }
+  ],
+  "sentences": [
+    {
+      "index": 0,
+      "verdict": "FAITHFUL",
+      "reason": "Both passed votes and the $100,000,000 bond limits come from c10-c13; calling bonds a way to borrow is just a plain-language explanation."
+    },
+    {
+      "index": 1,
+      "verdict": "FAITHFUL",
+      "reason": "'Changed version' is a fair rewording of 'adopted as substituted' (c3), and the $15,000,000.00 matches c2."
+    },
+    {
+      "index": 2,
+      "verdict": "FAITHFUL",
+      "reason": "Every fact matches c24-c27."
+    },
+    {
+      "index": 3,
+      "verdict": "FAITHFUL",
+      "reason": "Every fact matches c18-c20."
+    },
+    {
+      "index": 4,
+      "verdict": "FAITHFUL",
+      "reason": "The amounts and the passed votes match c15, c16, c21 and c22."
+    },
+    {
+      "index": 5,
+      "verdict": "FAITHFUL",
+      "reason": "Every fact matches c28 and c29."
+    },
+    {
+      "index": 6,
+      "verdict": "FAITHFUL",
+      "reason": "The adoptions and the no votes match c4-c7."
+    },
+    {
+      "index": 7,
+      "verdict": "FAITHFUL",
+      "reason": "The referral, bond amount and two-week hold match c35, c36 and c1; 'give up sidewalk space' is a plain rewording of 'vacating right-of-way'."
+    },
+    {
+      "index": 8,
+      "verdict": "FAITHFUL",
+      "reason": "The headline's two sewer bond ordinances and several spending measures are backed by the cited claims."
+    }
+  ]
+}

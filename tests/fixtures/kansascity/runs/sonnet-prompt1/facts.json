@@ -1,0 +1,81 @@
+{
+  "claims": [
+    {
+      "id": "c1",
+      "type": "other",
+      "statement": "Ordinance 260445, vacating sidewalk right-of-way in the Country Club Plaza area, was held on the docket until November 5 for two weeks.",
+      "quote": "Held on Docket until November 5th  10.22.2026 for two weeks",
+      "page": 4,
+      "matter_file": "260445",
+      "outcome": "held",
+      "amount_usd": null,
+      "date": "2026-11-05"
+    },
+    {
+      "id": "c2",
+      "type": "spending",
+      "statement": "Ordinance 260895 authorizes issuing not to exceed $100,000,000.0 principal amount of Sanitary Sewer System Revenue Bonds Series 2026A.",
+      "quote": "Authorizing the issuance of not to exceed $ 100,000,000.0 principal amount of Sanitary \nSewer System Revenue Bonds",
+      "page": 11,
+      "matter_file": "260895",
+      "outcome": null,
+      "amount_usd": 100000000,
+      "date": null
+    },
+    {
+      "id": "c3",
+      "type": "spending",
+      "statement": "Ordinance 260918 reduces Marijuana Sales Tax Fund appropriations by $485,424.00 and reappropriates the money for the Extreme Weather Program.",
+      "quote": "reducing appropriations of the Marijuana Sales Tax \nFund (2190) by $485,424.00 and reappropriating the same for the purpose of supporting the \nExtreme Weather Program",
+      "page": 12,
+      "matter_file": "260918",
+      "outcome": null,
+      "amount_usd": 485424,
+      "date": null
+    },
+    {
+      "id": "c4",
+      "type": "vote",
+      "statement": "Ordinance 260919, establishing Fund No. 2220, the ProspectUs Fund, was passed.",
+      "quote": "260919\nDirector of Finance DepartmentSponsors:\nAttachments: Docket Memo ProspectUS Fund\nAuthenticated Ordinance 260919\nA motion was made that this Ordinance be Passed.. The motion carried by the",
+      "page": 13,
+      "matter_file": "260919",
+      "outcome": "passed",
+      "amount_usd": null,
+      "date": null
+    },
+    {
+      "id": "c5",
+      "type": "spending",
+      "statement": "Ordinance 260920 authorizes spending not to exceed $1,100,000.00 for audio and video system upgrades at City Hall.",
+      "quote": "Authorizing the City Manager to expend an amount not to exceed $ 1,100,000.00 for the \npurpose of audio and video system upgrades at City Hall",
+      "page": 13,
+      "matter_file": "260920",
+      "outcome": null,
+      "amount_usd": 1100000,
+      "date": null
+    },
+    {
+      "id": "c6",
+      "type": "spending",
+      "statement": "Ordinance 260913 authorizes accepting a $486,054.54 Assistance to Firefighters Grant from the U.S. Department of Homeland Security.",
+      "quote": "Authorizing the acceptance of a $ 486,054.54 grant from the United States Department of \nHomeland Security",
+      "page": 16,
+      "matter_file": "260913",
+      "outcome": null,
+      "amount_usd": 486054.54,
+      "date": null
+    },
+    {
+      "id": "c7",
+      "type": "date",
+      "statement": "Ordinance 260948 authorizes a five-year agreement with Visit KC commencing on May 1, 2027.",
+      "quote": "five-year agreement commencing on May 1, 2027, with the Convention and \nVisitors Bureau of Greater Kansas City, Inc., d/b/a Visit KC",
+      "page": 26,
+      "matter_file": "260948",
+      "outcome": null,
+      "amount_usd": null,
+      "date": "2027-05-01"
+    }
+  ]
+}

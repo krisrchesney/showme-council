@@ -26,10 +26,13 @@ from difflib import SequenceMatcher
 
 FUZZY_MIN = 0.92        # PDF text extraction mangles some spacing; below this it's a different passage
 MIN_QUOTE_CHARS = 20
+COVERAGE_MIN = 0.40     # below this share of voted items covered, the default model is not coping (stop and ask)
+COVERAGE_MIN_ITEMS = 5  # ...but only for meetings with at least this many recorded votes
 
 _PAGE_RE = re.compile(r"^=== page (\d+) ===$", re.M)
 # A number glued to letters ("IAP2", "CD2") is part of a name, not a figure to check.
-_NUM_RE = re.compile(r"(?<![A-Za-z])\d[\d,]*(?:\.\d+)?")
+ORDINAL_RE = re.compile(r"(?:st|nd|rd|th)\b")   # "63rd" is a street name, not a figure
+_NUM_RE = re.compile(r"(?<![A-Za-z\d])\d[\d,]*(?:\.\d+)?(?![\d])")
 TITLE_PROBE = 50          # chars of an API item title searched for in the source
 _TRANS = str.maketrans({"‘": "'", "’": "'", "“": '"', "”": '"',
                         "–": "-", "—": "-", " ": " "})
@@ -87,13 +90,21 @@ def _canon(num):
     return str(int(n)) if n == int(n) else repr(n)
 
 
-def numbers(s):
-    return {_canon(m) for m in _NUM_RE.findall(s or "") if any(ch.isdigit() for ch in m)}
+def numbers(s, skip_ordinals=False):
+    """Canonical numbers in a string. skip_ordinals drops "63rd"/"5th": on the statement side they are
+    names (63rd Street) that a quote need not repeat. On the quote side keep them, so "November 5th"
+    in the quote still supports "November 5" in the statement."""
+    out = set()
+    for m in _NUM_RE.finditer(s or ""):
+        if skip_ordinals and ORDINAL_RE.match(s, m.end()):
+            continue
+        out.add(_canon(m.group(0)))
+    return out
 
 
 def numbers_check(claim, meta):
     """Numbers in the statement (and amount_usd) that the quote doesn't contain."""
-    wanted = numbers(claim.get("statement", ""))
+    wanted = numbers(claim.get("statement", ""), skip_ordinals=True)
     if claim.get("amount_usd") is not None:
         wanted.add(_canon(str(claim["amount_usd"])))
     have = numbers(normalize(claim.get("quote", "")))
@@ -178,25 +189,49 @@ def matter_blocks(pages, api_items):
     return sorted((v, k) for k, v in starts.items())
 
 
-def matter_check(claim, pages, api_items):
-    """'block' if the quote lies in the named matter's block, 'other:<file>' if in another
-    item's block, 'unlocated' if either can't be placed, 'none' if the claim names no matter."""
-    mf = (claim.get("matter_file") or "").strip()
-    if not mf:
-        return "none"
-    blocks = matter_blocks(pages, api_items)
-    pos = _locate(normalize(claim.get("quote", "")), _joined(pages))
-    if pos is None or not blocks or mf not in {f for _, f in blocks}:
-        return "unlocated"      # can't place the claimed item itself, so don't blame a neighbour
+def _positions(q, joined):
+    """Every start offset of the quote in the source. A quote like 'A motion was made that this
+    Ordinance be Passed' repeats under every passed item, so the first hit proves nothing about
+    which item it belongs to. Falls back to the single best fuzzy hit when there is no exact one."""
+    out, i = [], joined.find(q)
+    while i >= 0:
+        out.append(i)
+        i = joined.find(q, i + 1)
+    if out:
+        return out
+    j = _locate(q, joined)
+    return [j] if j is not None else []
+
+
+def _owner(pos, blocks):
     owner = None
     for start, file in blocks:
         if start <= pos:
             owner = file
         else:
             break
-    if owner is None:
+    return owner
+
+
+def matter_check(claim, pages, api_items):
+    """'block' if the quote occurs inside the named matter's own block, 'other:<file>' if it occurs
+    only in other items' blocks, 'unlocated' if the claimed item or the quote can't be placed,
+    'none' if the claim names no matter. Any occurrence in the claimed item's block counts: the text
+    really is there. A boilerplate quote still can't back a claim about an item whose block lacks it."""
+    mf = (claim.get("matter_file") or "").strip()
+    if not mf:
+        return "none"
+    blocks = matter_blocks(pages, api_items)
+    if not blocks or mf not in {f for _, f in blocks}:
+        return "unlocated"      # can't place the claimed item itself, so don't blame a neighbour
+    positions = _positions(normalize(claim.get("quote", "")), _joined(pages))
+    if not positions:
         return "unlocated"
-    return "block" if owner == mf else f"other:{owner}"
+    owners = [_owner(p_, blocks) for p_ in positions]
+    if mf in owners:
+        return "block"
+    first = next((o for o in owners if o), None)
+    return f"other:{first}" if first else "unlocated"
 
 
 def code_checks(claim, pages, meta, api_items):
@@ -224,6 +259,25 @@ def code_checks(claim, pages, meta, api_items):
         "numbers_missing_from_quote": missing, "matter": matter, "api": api,
         "passed": not reasons, "reasons": reasons,
     }
+
+
+def coverage(meta, api_items, accepted):
+    """How much of the meeting the page covers, measured against the city's own record.
+
+    voted   = agenda items the API records a pass/fail for (minutes only; an agenda has no votes)
+    covered = those items that have at least one ACCEPTED fact naming their matter number.
+    The pass rate says how much of what was extracted survived; this says how much of the meeting
+    was extracted at all. Returns None when there is nothing to measure."""
+    if meta.get("kind") != "minutes":
+        return None
+    voted = sorted({(i.get("EventItemMatterFile") or "").strip() for i in api_items
+                    if (i.get("EventItemMatterFile") or "").strip() and i.get("EventItemPassedFlagName")})
+    if not voted:
+        return None
+    got = {(c.get("matter_file") or "").strip() for c in accepted if c.get("matter_file")}
+    missing = [m for m in voted if m not in got]
+    return {"voted": len(voted), "covered": len(voted) - len(missing),
+            "rate": round((len(voted) - len(missing)) / len(voted), 3), "missing": missing}
 
 
 def decide(meta, claims, checks, summary, verdicts):
@@ -258,7 +312,10 @@ def decide(meta, claims, checks, summary, verdicts):
 
     # The headline is checked as one extra sentence citing every claim the summary used.
     hv = sv.get(len(sentences))
-    headline_ok = hv is not None and hv["verdict"] == "FAITHFUL" and bool(published)
+    # The headline may restate any claim the summary used, so every one of them must have been accepted.
+    # (T-10 gives the headline its own claim list so one rejected fact doesn't cost the whole headline.)
+    cited = {cid for s in sentences for cid in s.get("claim_ids", [])}
+    headline_ok = hv is not None and hv["verdict"] == "FAITHFUL" and bool(published) and cited <= ok_ids
     headline = summary.get("headline") if headline_ok else (
         f"{meta['body']} {meta['kind']}, {meta['date']}")
 

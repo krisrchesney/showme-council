@@ -1,0 +1,81 @@
+{
+  "claims": [
+    {
+      "id": "c1",
+      "verdict": "SUPPORTED",
+      "reason": "Page 4 says 260445 was held on docket until November 5th for two weeks."
+    },
+    {
+      "id": "c2",
+      "verdict": "SUPPORTED",
+      "reason": "Page 11 lists 260895 as authorizing bonds not to exceed $100,000,000.0, Series 2026A, and the ordinance passed."
+    },
+    {
+      "id": "c3",
+      "verdict": "SUPPORTED",
+      "reason": "Page 12 text for 260918 matches the $485,424.00 reduction and the Extreme Weather Program."
+    },
+    {
+      "id": "c4",
+      "verdict": "SUPPORTED",
+      "reason": "Page 13 shows 260919 passed on a carried motion, and the title establishes Fund No. 2220."
+    },
+    {
+      "id": "c5",
+      "verdict": "SUPPORTED",
+      "reason": "Page 13 text for 260920 matches the $1,100,000.00 audio and video upgrades, and the ordinance passed."
+    },
+    {
+      "id": "c6",
+      "verdict": "SUPPORTED",
+      "reason": "Page 16 text for 260913 matches the $486,054.54 AFG grant from DHS, and the ordinance passed."
+    },
+    {
+      "id": "c7",
+      "verdict": "PARTIAL",
+      "reason": "260948 was only introduced and referred to committee, so \"authorizes\" turns an agenda item into a decision."
+    }
+  ],
+  "sentences": [
+    {
+      "index": 0,
+      "verdict": "FAITHFUL",
+      "reason": "Matches c2."
+    },
+    {
+      "index": 1,
+      "verdict": "FAITHFUL",
+      "reason": "Matches c5."
+    },
+    {
+      "index": 2,
+      "verdict": "FAITHFUL",
+      "reason": "Matches c3; the parenthetical only explains a term."
+    },
+    {
+      "index": 3,
+      "verdict": "FAITHFUL",
+      "reason": "Matches c6."
+    },
+    {
+      "index": 4,
+      "verdict": "FAITHFUL",
+      "reason": "Matches c4."
+    },
+    {
+      "index": 5,
+      "verdict": "UNFAITHFUL",
+      "reason": "\"authorizes\" implies the agreement was approved, but 260948 was only introduced and referred to committee."
+    },
+    {
+      "index": 6,
+      "verdict": "FAITHFUL",
+      "reason": "Matches c1; the parentheticals only explain terms."
+    },
+    {
+      "index": 7,
+      "verdict": "FAITHFUL",
+      "reason": "The headline's topics (sewer bonds, City Hall upgrades, fund changes) are all covered by the cited claims."
+    }
+  ]
+}
