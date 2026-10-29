@@ -22,9 +22,10 @@ Status: Ready (needs the user's OK: GitHub repo, CLAUDE_CODE_OAUTH_TOKEN secret,
 Owns: .github/workflows/nightly.yml; DESIGN.md "State between nights" paragraph
 Blocked by: none
 Uses plan usage: yes (~75k tokens per document, ~5 documents a week)
-Decision first: confirm the auth with the user before building. A subscription token
-(`claude setup-token`; draws on the same plan usage) is the current choice. An API key would bill per token;
-never pick it without the user.
+Auth is decided (user, 2026-10-29): a subscription token from `claude setup-token`, stored as the
+repo secret `CLAUDE_CODE_OAUTH_TOKEN`. It draws on the same plan usage; an API key would bill per token,
+so never use one. The user generates the token themselves once the repo exists. The token must never go in
+a file, a commit, a log or chat: don't ask for it, and don't paste it anywhere.
 Why: The workflow is written but has no cron trigger, no state commit-back and no Pages deploy.
 Done when:
 - [ ] `schedule: cron` added (e.g. 07:30 UTC = 2:30 AM CDT), plus `workflow_dispatch`
@@ -32,7 +33,8 @@ Done when:
 - [ ] Site is deployed with actions/upload-pages-artifact + actions/deploy-pages
 - [ ] `concurrency` set so two nights never overlap; job `timeout-minutes` set
 - [ ] The pinned `@anthropic-ai/claude-code` version in the workflow exists on npm (it was copied from the local 2.1.299 build)
-- [ ] Auth is `CLAUDE_CODE_OAUTH_TOKEN` only; the workflow sets no `ANTHROPIC_API_KEY` and no `SHOWME_BARE`
+- [ ] Auth is `CLAUDE_CODE_OAUTH_TOKEN` only (`${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}`); the workflow sets no `ANTHROPIC_API_KEY` and no `SHOWME_BARE`
+- [ ] The ticket notes tell the user how to add the secret (repo Settings > Secrets and variables > Actions > New repository secret) without the builder ever seeing the value
 - [ ] A calendar reminder (or README note) to renew the token before it expires after one year
 - [ ] One manual `workflow_dispatch` run is green and the Pages URL loads
 

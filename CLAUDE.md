@@ -24,7 +24,9 @@ Runs on the user's Claude subscription. Report usage (tokens, turns, time), not 
 - Any run without `--stub` draws on the plan's usage window. Before the first real run in a
   session, say which model and the expected tokens (`python -m pipeline.run estimate <doc>`).
   That's a heads-up, not a budget approval. Never describe usage as cost or price.
-- Auth is the subscription (`claude auth login` locally, `CLAUDE_CODE_OAUTH_TOKEN` in CI).
+- Auth is the subscription (`claude auth login` locally, `CLAUDE_CODE_OAUTH_TOKEN` in CI). When you
+  give the user a login command, get the full path from `python -m pipeline.run claude-path`; don't
+  assume `claude` is on their PATH or use `%APPDATA%` paths (they don't resolve in the user's own shell).
   Don't switch to an API key (it bills per token) or add `--bare` without the user asking. The
   runner strips `ANTHROPIC_API_KEY` / `ANTHROPIC_AUTH_TOKEN` so nothing bills per token by accident.
 - Tests and reviews use `--fixture` and `--stub tests/fixtures/kansascity/stub` only.
@@ -51,7 +53,8 @@ Runs on the user's Claude subscription. Report usage (tokens, turns, time), not 
 - Plain-language writing on the site: short sentences, explain jargon once, neutral tone.
 
 ## Never
-- Commit API keys or tokens (`ANTHROPIC_API_KEY`, `CLAUDE_CODE_OAUTH_TOKEN`), or put them in files. CI reads them from GitHub secrets.
+- Put API keys or tokens (`ANTHROPIC_API_KEY`, `CLAUDE_CODE_OAUTH_TOKEN`) in a file, a commit, a log, or
+  chat. CI reads them from GitHub secrets; the user generates the token themselves.
 - Publish a fact or sentence that didn't pass `decide()`, or re-host city PDFs. Link to the official copy.
 - Remove the "unofficial / AI-written" notice or the source credit from site pages.
 - Scrape a page a site's robots.txt disallows (St. Louis bill pages, St. Charles /RSS.aspx).
