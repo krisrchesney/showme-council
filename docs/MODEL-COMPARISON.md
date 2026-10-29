@@ -105,3 +105,62 @@ Run it on a second and a third document, and add the T-5 canaries, before trusti
 Kansas City Council minutes.
 
 Nothing here has been published or pushed. The published page is still the Opus run.
+
+---
+
+# Test 2: two more documents (pre-registered)
+
+Written and committed **before any run**, so the bar can't move afterwards. Document 1 above was
+scored after I had changed my own check; this test exists to see whether the default setup holds
+when nothing is changed in the middle.
+
+## Frozen
+
+Code is frozen at commit `00af077`. For the duration of this test nothing changes in
+`pipeline/verify.py` (every check and every threshold: `FUZZY_MIN` 0.92, `MIN_QUOTE_CHARS` 20,
+`COVERAGE_MIN` 0.40, `COVERAGE_MIN_ITEMS` 5, `MISSING_VERDICT_LIMIT` 0.10), the three agent
+prompts, or the schemas. If a check looks over-strict while I read the results, it becomes a ticket
+in TASKS.md. It is not changed and the run is not re-scored.
+
+## Documents, and how they were picked
+
+Both come from the live Legistar API, chosen by a mechanical rule before any model ran:
+
+| | Document | Why |
+|---|---|---|
+| 2 | `kc-19539-minutes`: Council, 2026-10-08, 68 agenda items, 9 with a recorded pass/fail | The most recent Council minutes other than document 1 (2026-10-22). |
+| 3 | `kc-19460-minutes`: Finance, Governance and Public Safety Committee, 2026-09-08, 11 items, 0 with a recorded pass/fail | The most recent committee minutes, picked because a different kind of meeting is a better test than another Council meeting. It is smaller and its results aren't recorded as pass/fail votes. |
+
+Of the 23 minutes documents since July, 14 are Council and 9 are this one committee; no other body
+has minutes. Both PDFs returned HTTP 200 when checked on 2026-10-29. If one returns a 404 on the
+run, I retry later and run from a saved copy.
+
+## Setup
+
+Sonnet 5.5 only, default settings (agents' `model:` unchanged, no `--model`). No Opus runs: the
+city's own vote record is the independent check. Each run goes in its own `experiments/` folder.
+Nothing is published and the Opus page isn't touched.
+
+## Pass criteria, per document
+
+A document passes only if it meets every criterion that applies to it:
+
+1. **At least 80% of extracted facts pass every check.**
+2. **Voted-item coverage at least 66%** (Opus's level on document 1). Scored only for a document
+   where the API records at least 5 pass/fail items (document 2: so at least 6 of 9). Not scored
+   for document 3, which has none.
+3. **Zero accepted facts that the city's vote record contradicts.**
+4. **No "this may need Opus" stop.**
+
+The overall test passes only if both new documents pass. Document 1 is carried over from the
+table above (92%, 90%, 0, no stop).
+
+## Reported, not scored
+
+- How many claims the Sonnet fact-checker flagged (PARTIAL or UNSUPPORTED), and what I make of it.
+  It flagged none of 60 on document 1.
+- Tokens in and out, turns and wall time per stage.
+- Every rejected fact, read and classified as a **correct rejection** (the check working as
+  designed) or an **over-strict check** (listed as a ticket, not fixed here).
+
+Failures are reported as failures.
