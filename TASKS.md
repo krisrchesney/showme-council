@@ -77,18 +77,6 @@ Done when:
 - [ ] A real cached Columbia meeting fixture (made with refresh_fixture.py, given a `--client` flag) passes the same list/fetch tests as KC
 - [ ] The site footer credit names the source city per document, not always Kansas City
 
-### T-5: Measure the fact-checker's catch rate with planted errors
-Status: Ready (do first: Sonnet's checker has flagged 0 of 118 claims and nothing yet shows it would catch an error)
-Owns: pipeline/canary.py (new); one call in pipeline/run.py `process()` after the fact-checker stage; tests/test_canary.py (new)
-Blocked by: none
-Uses plan usage: yes (adds ~10% to the fact-checker stage)
-Why: The pass rate says how much survives; it doesn't say whether the checker would catch a bad claim. Planted errors do.
-Done when:
-- [ ] For each document, 2 accepted-looking claims are copied and changed in ways code can't catch (outcome word flipped, body name swapped) and marked `canary: true`
-- [ ] Canaries go through the fact-checker with the real claims, are never published, and `report.json` gets `canary_caught / canary_total`
-- [ ] The site's index shows the running catch rate next to the pass rate
-- [ ] Offline test with stub verdicts proves canaries can't reach data/published
-
 ### T-6: St. Charles County agendas (CivicPlus AgendaCenter)
 Status: Ready
 Owns: pipeline/sources/civicplus.py (new); tests/fixtures/stcharles/ (new); tests/test_civicplus.py (new); one line in pipeline/sources/__init__.py
@@ -155,6 +143,17 @@ Done when:
 - [ ] An item that the title probe can't place is located another way (e.g. the legislation number itself appearing in the item's trailing lines), with no loosening for items that are placed
 - [ ] The two 260885 facts from the saved run pass; a wrong-item quote is still rejected
 
+### T-14: Subtler planted errors
+Status: Ready
+Owns: pipeline/canary.py (new kinds); tests/test_canary.py
+Blocked by: none
+Uses plan usage: yes (one `canary-eval` per saved run, ~80k tokens for three; give the heads-up first)
+Why: T-5's first measurement (10 of 10) used explicit contradictions. A checker can say no to "rejected" when the source says "adopted" and still miss a quieter wrong detail.
+Done when:
+- [ ] New fake kinds, each false in a way code can't see: a dropped qualifier ("passed" for "passed as substituted"), a wrong date or deadline, a wrong organisation or sponsor name, a wrong committee a referral went to, and a count off by one that is not in the quote
+- [ ] Offline tests that each new kind is false, passes the code checks, and never reaches published output
+- [ ] One real `canary-eval` on the three saved runs; the catch rate per kind is added to docs/MODEL-COMPARISON.md
+
 ## In progress
 
 ## Review
@@ -163,3 +162,4 @@ Done when:
 - T-0: Scaffold: KC Legistar ingester with offline fixture, three pipeline agents, code checks, site builder, check script + Stop hook (2026-10-29)
 - T-8: Coverage metric from the city's own vote record, plus a "this may need Opus: only N of M voted items covered" stop (floor 40%, 5+ votes); tests pin Opus 19/29, Sonnet first prompt 4/29, Sonnet coverage prompt 26/29 (2026-10-29)
 - T-9: Extractor prompt asks for one fact per voted or money item. One Sonnet 5.5 run on kc-19561-minutes: 60 facts, 55 pass, coverage 26/29, all 42 vote facts match the city's record. Found and fixed a first-occurrence flaw in the matter-block check on the way (docs/MODEL-COMPARISON.md) (2026-10-29)
+- T-5: Planted errors (flipped outcome, false "unanimously", swapped councilmember, wrong body) ride in the fact-checker's input, are never told apart and never published. First measurement on three saved runs: caught 10 of 10, 0 of 118 real claims flagged; 78.9k tokens in / 9.6k out, 6 turns, 63 s (2026-10-29)

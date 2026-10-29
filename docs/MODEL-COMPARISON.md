@@ -251,3 +251,58 @@ then, the real defence is the code layer and the city's vote record, not the che
 - **Order of work:** T-5 first (is the checker real?), then T-11 (city wording for held/referred/etc.)
   and re-score the saved outputs for free as a labelled post-hoc re-score, then T-12 and T-13.
   Only then consider scaling to more documents.
+
+---
+
+# Test 3: does the fact-checker catch planted errors? (T-5)
+
+Test 2 left one question open: the Sonnet fact-checker had flagged 0 of 118 real claims, which is
+what a good checker facing good facts would do and also what a rubber stamp would do. T-5 builds fake
+claims and slips them into the checker's input to tell the two apart.
+
+**How the fakes are made** (`pipeline/canary.py`). Each is a copy of a claim that already passed the
+code checks, made false in a way code can't see (the quote, numbers and matter number stay right):
+`flip_outcome` ("adopted" becomes "rejected", "held" becomes "approved", "recommended do pass"
+becomes "recommended against passage"), `overstate` ("passed" becomes "passed unanimously" for a
+vote the city's roll call shows had Nay votes), `swap_name` (the councilmember who voted no is
+replaced by one who voted aye), and `swap_body` (the vote is attributed to a different committee or
+body). The fakes get ordinary ids continuing the real sequence, and nothing in the input marks them.
+They are never published: their verdicts are split off before `decide()`, and tests prove it.
+
+**Run:** the fact-checker only, on the saved real runs of three documents (the Oct 22 and Oct 8
+Council minutes and the Sept 8 committee minutes), each with its real claims plus the fakes, Sonnet
+5.5. `python -m pipeline.run canary-eval <doc>`.
+
+| | Oct 22 Council | Oct 8 Council | Sept 8 committee | Total |
+|---|---|---|---|---|
+| Fakes planted | 4 | 4 | 2 | **10** |
+| **Caught by the fact-checker** | 4 | 4 | 2 | **10 of 10** |
+| Code alone would also have caught | 2 | 2 | 0 | 4 |
+| Real claims the checker flagged in the same call | 0 of 60 | 0 of 48 | 0 of 10 | **0 of 118** |
+| Tokens in / out | 37.3k / 4.2k | 29.5k / 3.5k | 12.1k / 1.9k | 78.9k / 9.6k |
+| Turns / wall time | 2 / 27 s | 2 / 22 s | 2 / 14 s | 6 / 63 s |
+
+By kind: outcome flips 5 of 5 (code caught 4 of those: the committee's wording isn't checkable until
+T-11), wrong body 3 of 3, swapped councilmember 1 of 1, false "unanimously" 1 of 1. Only the checker
+could catch the last three kinds (5 fakes): it did, all of them.
+
+**It caught them for the right reasons.** Each reason names the specific wrong thing: "'rejected' is
+wrong; the source says the motion carried"; "Nay votes were Willett and Rogers, not Lucas; Lucas voted
+Aye"; "'unanimously' is wrong; Willett and Duncan voted Nay"; "It was a full Council meeting, and the
+item sat under the Neighborhood committee heading, not an FGPS committee meeting". Real claims in
+the same calls were not flagged, so it is not saying "no" to everything.
+
+**What this settles, and what it doesn't.** The checker is not a rubber stamp: on this kind of error it
+said no every time and did not raise false alarms. So the 0 flags on real claims is evidence the
+facts were right, not evidence the checker is blind. It does not settle:
+- **Sample size:** 10 fakes from 3 documents. A catch rate of 10 of 10 is compatible with a true
+  rate well under 100%.
+- **Difficulty:** these fakes are explicit contradictions of text the checker can see. Subtler errors
+  (a wrong date, a dropped qualifier like "as substituted", a wrong organisation, an off-by-one count)
+  are untested. See T-14.
+- **One model:** the checker was Sonnet 5.5. Only Kansas City minutes, one fake template set.
+- **Cost of the safeguard:** nightly runs now carry 4 fakes in the fact-checker call, about 4 extra
+  claims on 60, which is a few percent of that stage's tokens.
+
+**Effect on the open decision:** the main reason to hold back the nightly schedule and the public site
+(an untested checker) is weaker, not gone. See the recommendation to the user in the session report.
