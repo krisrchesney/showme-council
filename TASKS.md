@@ -2,7 +2,7 @@
 
 The shared backlog. Agents coordinate through this file and git. Take one Ready
 ticket, move it to In progress with your branch name, and touch only what it Owns.
-"Paid run" means verifying it calls Claude; ask the user first (CLAUDE.md).
+"Paid run" means verifying it calls Claude, which uses the subscription's usage; ask the user first (CLAUDE.md).
 
 Template:
 
@@ -18,10 +18,10 @@ Template:
 ## Ready
 
 ### T-1: Turn on the nightly GitHub Actions run
-Status: Ready (needs the user's OK: GitHub repo, secret, Pages)
+Status: Ready (needs the user's OK: GitHub repo, CLAUDE_CODE_OAUTH_TOKEN secret, Pages)
 Owns: .github/workflows/nightly.yml; DESIGN.md "State between nights" paragraph
 Blocked by: none
-Paid run: yes (~$0.40 a night, capped at $4)
+Paid run: yes, subscription usage (~75k tokens per document, ~5 documents a week; no API bill)
 Why: The workflow is written but has no cron trigger, no state commit-back and no Pages deploy.
 Done when:
 - [ ] `schedule: cron` added (e.g. 07:30 UTC = 2:30 AM CDT), plus `workflow_dispatch`
@@ -29,6 +29,8 @@ Done when:
 - [ ] Site is deployed with actions/upload-pages-artifact + actions/deploy-pages
 - [ ] `concurrency` set so two nights never overlap; job `timeout-minutes` set
 - [ ] The pinned `@anthropic-ai/claude-code` version in the workflow exists on npm (it was copied from the local 2.1.299 build)
+- [ ] Auth is `CLAUDE_CODE_OAUTH_TOKEN` only; the workflow sets no `ANTHROPIC_API_KEY` and no `SHOWME_BARE`
+- [ ] A calendar reminder (or README note) to renew the token before it expires after one year
 - [ ] One manual `workflow_dispatch` run is green and the Pages URL loads
 
 ### T-2: CI check on every push

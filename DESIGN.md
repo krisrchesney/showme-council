@@ -102,8 +102,8 @@ Checked against the current docs (code.claude.com/docs/en/github-actions and
 | | GitHub Actions cron (recommended) | Windows Task Scheduler on this PC |
 |---|---|---|
 | Runs when the PC is off | Yes | No |
-| Auth | Repo secret `ANTHROPIC_API_KEY` (Console key, API billing) **or** `CLAUDE_CODE_OAUTH_TOKEN` from `claude setup-token` (uses your Pro/Max plan) | Whatever `claude` is logged in with locally |
-| Reproducible | `--bare` (set `SHOWME_BARE=1`) skips local hooks, CLAUDE.md and OAuth; needs the API key | Depends on local state |
+| Auth (chosen: **subscription**) | Repo secret `CLAUDE_CODE_OAUTH_TOKEN`, a long-lived token from `claude setup-token`, billed to your Claude plan | `claude auth login` with your Claude plan |
+| Reproducible | Same flags every run; hooks are skipped via `SHOWME_PIPELINE=1`, MCP via `--strict-mcp-config`. `--bare` is **not** used: bare mode never reads OAuth, so it only works with an API key | Depends on local state |
 | Publishing | `actions/deploy-pages` in the same job | Needs a `git push` from this PC |
 | Cost of the runner | Free for a public repo | Free |
 | Gotchas | Cron runs only from the default branch; GitHub turns schedules off after 60 days without repo activity (the nightly data commit counts as activity); cron times are UTC and can start late | PC asleep = missed night |
@@ -113,9 +113,17 @@ the action runs one prompt, but this pipeline is three schema-checked calls with
 code in between, and Python owns that loop. The action fits "do this task in my
 repo", not "call a model three times inside my program".
 
-The secret is stored under repo Settings → Secrets and variables → Actions →
-New repository secret, and is read only as `${{ secrets.ANTHROPIC_API_KEY }}`.
-It never goes in a file. `.github/workflows/nightly.yml` is written but has
+**Auth decision (2026-10-29): subscription, not API billing.** Locally the CLI
+is logged in with your plan. In Actions, run `claude setup-token` once on this PC
+and store its output under repo Settings → Secrets and variables → Actions →
+New repository secret as `CLAUDE_CODE_OAUTH_TOKEN`. The workflow reads it only as
+`${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}`; it never goes in a file. The token is tied
+to your personal subscription, which is fine for a personal repo (the docs suggest
+an API key only for secrets shared across an organization). The token lasts one
+year, so renewing it is a yearly chore (T-1). If `ANTHROPIC_API_KEY` is also set,
+it outranks the token and billing silently moves to the API, so the workflow never
+sets both. The API-key path still
+works for anyone forking: set `ANTHROPIC_API_KEY` and `SHOWME_BARE=1`. `.github/workflows/nightly.yml` is written but has
 **no cron trigger yet**; enabling it is T-1 and needs your OK.
 
 **State between nights.** `data/state.json` (what's done or failed),
@@ -125,8 +133,25 @@ In Actions, the job commits the record back (T-1 decides main vs. a `data` branc
 
 ## Cost per night
 
-Prices: Opus 5.5 $4 / $20 per million input / output tokens; Sonnet 5.5 $2 / $10;
-Haiku 5.5 $0.10 / $0.50. Agents default to Opus 5.5 (`model:` in each `.md`).
+**With a subscription there is no per-token bill.** Runs draw on your plan's usage
+limits, the same pool your interactive Claude Code sessions use. So the real
+constraint is usage headroom, not dollars:
+- Tokens per document (below) are what each night takes from the plan: about
+  75k per document (~56k in, ~18k out incl. thinking), ~5 documents a week, so
+  roughly 375k tokens a week. `estimate` prints both tokens and API-price dollars.
+- Schedule the run at night (07:30 UTC) so it doesn't compete with daytime sessions.
+- If a run hits a usage limit, the CLI returns an error, the document is marked
+  `error`, and it retries the next night (`MAX_TRIES = 3`). Nothing half-finished
+  is published.
+- `--max-budget-usd` and the per-document and per-night caps stay. Under a
+  subscription they act on Claude Code's *estimated* cost, so they still stop a
+  runaway loop. The `total_cost_usd` in `report.json` is the API-price equivalent,
+  not a charge.
+
+The API-price equivalent is still useful as a size measure, and it's what an
+API-key fork would pay. Prices: Opus 5.5 $4 / $20 per million input / output
+tokens; Sonnet 5.5 $2 / $10; Haiku 5.5 $0.10 / $0.50. Agents default to Opus 5.5
+(`model:` in each `.md`).
 
 One KC Council minutes document (the 2026-10-22 fixture: 28 pages, about 12.6k
 tokens of text). `python -m pipeline.run estimate <doc>` gives:
@@ -139,8 +164,9 @@ tokens of text). `python -m pipeline.run estimate <doc>` gives:
 | **per document** | | | **≈ $0.57** |
 
 Volume with the chosen bodies (Council + 3 standing committees): about 5 new
-documents a week (Council agenda and minutes, committee agendas), so **about
-$0.40 a night on average and about $12 a month on Opus 5.5**. That's ~$6/month if
+documents a week (Council agenda and minutes, committee agendas). That's about
+**$0.40 a night, or $12 a month, in API-price terms on Opus 5.5**, and $0 billed
+on the subscription. That's ~$6/month if
 all three agents switch to Sonnet 5.5, and much less on Haiku 5.5, untested for
 quality. Committee agendas are shorter than the fixture, so these numbers are
 on the high side. The first real runs replace them: every run records Claude
@@ -149,7 +175,8 @@ Code's reported `total_cost_usd` per stage in `report.json`.
 Hard caps: `--max-budget-usd` on every call (the stage gets what's left of the
 document's cap), `$1.50` per document, `$4.00` per night (`nightly --max-usd`).
 Hitting the nightly cap leaves the remaining documents for tomorrow. GitHub runner
-minutes: free for a public repo.
+minutes: free for a public repo. Actual dollars billed under the chosen setup: $0
+beyond the existing Claude plan.
 
 ## Rules the design depends on
 

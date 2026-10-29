@@ -23,15 +23,17 @@ python scripts/check.py                                   # offline tests, free
 # offline end-to-end with stub agents (free)
 python -m pipeline.run nightly --fixture --stub tests/fixtures/kansascity/stub --days 10
 
-# one real document (costs money: check the estimate first)
+# one real document (uses plan usage: check the estimate first)
 python -m pipeline.run ingest --since 2026-10-22 --until 2026-10-23 --limit 1
 python -m pipeline.run estimate kc-19561-minutes
 python -m pipeline.run process kc-19561-minutes --max-usd 1.50
 python -m pipeline.run build-site                         # -> site/index.html
 ```
 
-Real runs need the `claude` CLI logged in (`claude auth login`), or
-`ANTHROPIC_API_KEY` with `SHOWME_BARE=1`. Set `CLAUDE_BIN` if `claude` isn't on PATH.
+Real runs use a Claude subscription (Pro/Max): log the CLI in with `claude auth login`,
+or set `CLAUDE_CODE_OAUTH_TOKEN` from `claude setup-token` (this is what CI uses). They
+draw on plan usage, not an API bill. Set `CLAUDE_BIN` if `claude` isn't on PATH.
+(An API-key fork can set `ANTHROPIC_API_KEY` and `SHOWME_BARE=1` instead.)
 
 Unofficial and AI-written. Always check the linked official record. Source records:
 City of Kansas City, Missouri, via Legistar.

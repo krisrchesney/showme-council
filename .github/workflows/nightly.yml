@@ -1,5 +1,6 @@
 # Nightly pipeline. DRAFT: manual trigger only until T-1 is approved.
-# Needs repo secret ANTHROPIC_API_KEY (Settings > Secrets and variables > Actions).
+# Auth: Claude subscription. Needs repo secret CLAUDE_CODE_OAUTH_TOKEN, the output of
+# `claude setup-token` (valid one year), under Settings > Secrets and variables > Actions.
 name: nightly
 
 on:
@@ -31,8 +32,9 @@ jobs:
       - run: python scripts/check.py
       - name: Pipeline
         env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-          SHOWME_BARE: "1"
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          # No SHOWME_BARE: bare mode ignores OAuth. Don't also set ANTHROPIC_API_KEY,
+          # it outranks the token and would switch billing to the API.
         run: python -m pipeline.run nightly --days 3 --max-docs 4 --max-usd 4.00
       # T-1: commit data/state.json, data/published/, data/metrics.jsonl; then
       # actions/upload-pages-artifact (path: site) + actions/deploy-pages.
