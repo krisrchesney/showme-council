@@ -106,6 +106,29 @@ Done when:
 - [ ] Labelled "From the city's vote record" so readers can tell it from AI text
 - [ ] Offline test checks the 260919 roll call renders with 12 Ayes and Robinson excused
 
+### T-8: Coverage metric from the city's own record, and a "too few facts" stop
+Status: Ready
+Owns: pipeline/verify.py (new `coverage()`); the report fields built in pipeline/run.py `finalize()`; pipeline/site.py index stats; one new stop condition in `process()`; tests/test_coverage.py (new)
+Blocked by: none
+Uses plan usage: no
+Why: The pass rate says how much of what was extracted survived, not how much of the meeting was covered. The Sonnet comparison (docs/MODEL-COMPARISON.md) produced 7 facts from a meeting with 29 recorded votes and nothing in the pipeline noticed.
+Done when:
+- [ ] `coverage` = share of API items with a recorded pass/fail (minutes only) that have at least one accepted fact; stored in report.json and metrics.jsonl and shown on the index next to the pass rate
+- [ ] Offline test: Opus's saved facts give 19 of 29, Sonnet's give 4 of 29 (fixtures copied into tests/fixtures/)
+- [ ] On the default model, coverage under a threshold written in verify.py (suggest 40%) stops the document with `this may need Opus: only N of M voted items covered`; under an explicit Opus run it only reports
+- [ ] The threshold is not lowered to make a run pass (CLAUDE.md "Never")
+
+### T-9: Extractor prompt for coverage, tested on Sonnet
+Status: Ready
+Owns: .claude/agents/extractor.md
+Blocked by: T-8 (to measure the result)
+Uses plan usage: yes (one real run, ~60-75k tokens; give the heads-up first)
+Why: Sonnet read "precision matters far more than coverage" as "write few facts". Opus did not.
+Done when:
+- [ ] The prompt asks for one fact per voted item and per money item, not a sample, while keeping the quote and number rules
+- [ ] One Sonnet run on kc-19561-minutes into experiments/ (not the published page) reaches coverage within 10 points of Opus's 19/29 with a claim pass rate no worse than 80%, or the ticket reports it didn't and recommends the extractor-only Opus option (ask the user first)
+- [ ] The result is added to docs/MODEL-COMPARISON.md
+
 ## In progress
 
 ## Review
