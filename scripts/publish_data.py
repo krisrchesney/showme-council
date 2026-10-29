@@ -8,9 +8,11 @@ everything except the push and prints what would be committed. The data branch h
 code history on master stays clean and the site can always be rebuilt from it.
 
 Run in CI by the job that has write access; the job that talks to the model never does.
+To push to GitHub set PUBLISH_TOKEN (the workflow's own token); it is sent as a one-off header, not in the URL.
 """
 
 import argparse
+import base64
 import os
 import shutil
 import subprocess
@@ -20,8 +22,21 @@ import tempfile
 FILES = ("state.json", "metrics.jsonl")
 
 
+_AUTH = []   # set per run by publish(); see _auth_args
+
+
+def _auth_args(remote):
+    """Credentials for pushing to GitHub, passed the way actions/checkout does: a one-off header on the git
+    command line. Never in the remote URL, never written to a config file, and never in an error message."""
+    token = os.environ.get("PUBLISH_TOKEN")
+    if token and remote.startswith("https://github.com/"):
+        b64 = base64.b64encode(f"x-access-token:{token}".encode()).decode()
+        return ["-c", f"http.https://github.com/.extraheader=AUTHORIZATION: basic {b64}"]
+    return []
+
+
 def git(cwd, *args, check=True):
-    r = subprocess.run(["git", *args], cwd=cwd, capture_output=True, text=True)
+    r = subprocess.run(["git", *_AUTH, *args], cwd=cwd, capture_output=True, text=True)
     if check and r.returncode != 0:
         raise RuntimeError(f"git {' '.join(args)} failed: {r.stderr.strip() or r.stdout.strip()}")
     return r
@@ -29,6 +44,8 @@ def git(cwd, *args, check=True):
 
 def publish(data_dir, remote, branch="data", dry_run=False, message=None, identity=("showme-council bot", "bot@users.noreply.github.com")):
     """Returns (committed: bool, files_changed: list[str], pushed: bool)."""
+    global _AUTH
+    _AUTH = _auth_args(remote)
     work = tempfile.mkdtemp(prefix="showme-data-")
     try:
         exists = git(work, "ls-remote", "--exit-code", "--heads", remote, branch, check=False).returncode == 0
@@ -64,6 +81,7 @@ def publish(data_dir, remote, branch="data", dry_run=False, message=None, identi
         return True, changed, True
     finally:
         shutil.rmtree(work, ignore_errors=True)
+        _AUTH = []
 
 
 def main(argv=None):
