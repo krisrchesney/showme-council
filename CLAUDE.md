@@ -61,8 +61,10 @@ Runs on the user's Claude subscription. Report usage (tokens, turns, time), not 
 - Enable the nightly cron, push, or publish to Pages without the user saying so.
 
 ## Command Center asks (read at the start of every turn)
-This project is tracked on the user's Command Center Projects tab as `devprojects/showme-council` in
-https://claude.ai/artifact/JLT468hZanBzx9RGZwaSWc (load ArtifactData with ToolSearch "select:ArtifactData").
+This project is tracked on the user's private Command Center Projects tab as `devprojects/showme-council`.
+The board's link is in `../CommandCenter/CLAUDE.md` (the folder next to this repo on the user's machine;
+it is deliberately not written here because this repo is public). Load ArtifactData with ToolSearch
+"select:ArtifactData".
 - At the start of each turn, read that doc and every `devdecisions` doc whose `project` is "showme-council".
   Those are the user's clicks on its asks: approved, declined, done, snoozed, or an `answer`.
 - Treat an approved or answered ask as the user's own answer for routine local work and act on it.
@@ -71,8 +73,8 @@ https://claude.ai/artifact/JLT468hZanBzx9RGZwaSWc (load ArtifactData with ToolSe
 - When done, update the ask in `devprojects/showme-council` pinned with `if_version`: copy the status and
   answer, set `handledAt` and `handledBy`, and note the result in `lastActivity`. Add an ask there when
   you need something only the user can give, and append a `usage` entry when a run finishes.
-- Full rules: D:\Users\Kao\Claude\CommandCenter\CLAUDE.md, rule `cc-projects-status`. Never put
-  secrets or tokens in the database.
+- Full rules: `../CommandCenter/CLAUDE.md`, rule `cc-projects-status`. Never put secrets or tokens in the
+  database, and never write the board's link, personal paths or account names into this public repo.
 
 ## Lessons
 One line per finished ticket: what went wrong or what review caught. Added on
