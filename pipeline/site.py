@@ -100,8 +100,11 @@ def index_page(docs, metrics):
     rtable = "".join(f"<tr><td>{e(k)}</td><td>{v}</td></tr>" for k, v in sorted(reasons.items(), key=lambda kv: -kv[1]))
     cov = [x["coverage"] for x in metrics if x.get("coverage")]
     cov_v, cov_c = sum(c["voted"] for c in cov), sum(c["covered"] for c in cov)
+    can = [x["canary"] for x in metrics if x.get("canary")]
+    can_t, can_c = sum(c["total"] for c in can), sum(c["checker_caught"] for c in can)
     stats = (f"<div class='card'><b>Fact-checker so far:</b> {tot_a} of {tot_x} extracted facts passed "
              f"({pct(tot_a / tot_x if tot_x else None)}) across {len(metrics)} documents."
+             + (f" <b>Planted-error test:</b> the fact-checker caught {can_c} of {can_t} deliberately false facts slipped into its input." if can_t else "")
              + (f" <b>Coverage:</b> {cov_c} of {cov_v} recorded votes have at least one checked fact ({pct(cov_c / cov_v)})." if cov_v else "")
              + (f"<table><tr><th>Why facts were rejected</th><th>Count</th></tr>{rtable}</table>" if rtable else "")
              + "</div>")
