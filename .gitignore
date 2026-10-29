@@ -20,3 +20,6 @@ site/
 # Claude Code: per-user settings and worktrees
 .claude/settings.local.json
 .claude/worktrees/
+
+# Model-comparison runs (kept locally; see docs/MODEL-COMPARISON.md for the write-up)
+experiments/
