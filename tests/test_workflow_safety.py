@@ -53,9 +53,12 @@ class WorkflowSafetyTests(unittest.TestCase):
 
     def test_inputs_reach_the_shell_only_as_validated_env_vars(self):
         for ln in self.lines:
+            if ln.strip().startswith("if:"):
+                continue                      # a job condition is evaluated by Actions, never by a shell
             if "inputs." in ln or "github.event" in ln:
                 self.assertRegex(ln, r"^\s+[A-Z_]+: \$\{\{ inputs\.\w+ \}\}$", ln)
         self.assertIn("bad doc_id", self.text)
+        self.assertIn("bad mode", self.text)
 
     def test_checkout_does_not_keep_credentials_and_the_job_has_a_timeout(self):
         self.assertIn("persist-credentials: false", self.text)
@@ -63,6 +66,52 @@ class WorkflowSafetyTests(unittest.TestCase):
 
     def test_the_run_never_touches_the_repos_own_data(self):
         self.assertIn("SHOWME_DATA_DIR: ${{ runner.temp }}/showme-data", self.text)
+
+
+def job_block(text, name):
+    """The lines of one job (from '  name:' to the next top-level job or the end)."""
+    jobs = text.split("\njobs:\n", 1)[1]
+    m = re.search(rf"(?m)^  {name}:\n(.*?)(?=^  [a-z_-]+:\n|\Z)", jobs, re.S)
+    return m.group(1)
+
+
+class TwoJobSplitTests(unittest.TestCase):
+    """The job that talks to the model can't write; the job that can write never touches the model."""
+
+    def setUp(self):
+        self.text = workflow()
+        self.run_job = job_block(self.text, "run")
+        self.publish_job = job_block(self.text, "publish")
+
+    def test_the_model_job_has_no_write_permissions(self):
+        self.assertNotIn("permissions:", self.run_job)            # so it inherits the top-level contents: read
+        for bad in ("write", "id-token", "deploy-pages", "publish_data.py --data \"$SHOWME_DATA_DIR\" --remote \"$REPO_URL\"\n"):
+            self.assertNotIn(bad, self.run_job, bad)
+
+    def test_the_write_job_has_exactly_the_three_permissions_and_no_model_token(self):
+        perms = re.search(r"permissions:\n((?:      .+\n)+)", self.publish_job).group(1).split("\n")
+        self.assertEqual(sorted(p.strip() for p in perms if p.strip()), ["contents: write", "id-token: write", "pages: write"])
+        for bad in ("secrets.", "CLAUDE_CODE_OAUTH_TOKEN", "ANTHROPIC", "pipeline.run", "claude "):
+            self.assertNotIn(bad, self.publish_job, bad)
+
+    def test_publishing_needs_an_explicit_yes_and_never_follows_a_dry_run(self):
+        cond = re.search(r"(?m)^    if: (.+)$", self.publish_job).group(1)
+        for needle in ("inputs.publish == true", "inputs.mode == 'nightly'", "inputs.dry_run == false"):
+            self.assertIn(needle, cond)
+
+    def test_defaults_are_the_safe_ones(self):
+        self.assertRegex(self.text, r"dry_run:\n(?:        .+\n)*?        default: true")
+        self.assertRegex(self.text, r"publish:\n(?:        .+\n)*?        default: false")
+        self.assertRegex(self.text, r"mode:\n(?:        .+\n)*?        default: document")
+
+    def test_the_schedule_is_still_off(self):
+        self.assertNotIn("schedule:", "\n".join(active_lines(self.text)))
+        self.assertNotIn("cron:", "\n".join(active_lines(self.text)))
+
+    def test_the_push_token_is_the_runs_own_and_only_on_the_write_job(self):
+        self.assertIn("PUBLISH_TOKEN: ${{ github.token }}", self.publish_job)
+        self.assertNotIn("PUBLISH_TOKEN", self.run_job)
+        self.assertIn("persist-credentials: false", self.publish_job)
 
 
 class ReportCommandTests(TempDataTest):

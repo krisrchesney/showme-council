@@ -89,6 +89,22 @@ class PublishDataTests(unittest.TestCase):
         r = subprocess.run(["git", "branch", "--list", "data"], cwd=self.remote, capture_output=True, text=True)
         self.assertEqual(r.stdout.strip(), "")                       # the branch was not created
 
+    def test_the_push_token_is_a_one_off_header_never_in_a_url_or_config(self):
+        os.environ["PUBLISH_TOKEN"] = "tok-secret-value"
+        try:
+            args = publish_data._auth_args("https://github.com/o/r.git")
+            self.assertEqual(args[0], "-c")
+            self.assertIn("http.https://github.com/.extraheader=AUTHORIZATION: basic ", args[1])
+            self.assertNotIn("tok-secret-value", " ".join(args))      # base64, not plain text
+            self.assertEqual(publish_data._auth_args("/some/local/path"), [])   # only ever sent to github.com
+            self.assertEqual(publish_data._auth_args("https://example.com/o/r.git"), [])
+            committed, _, pushed = publish_data.publish(self.data, self.remote)   # local remote: header unused, still works
+            self.assertTrue(committed and pushed)
+            self.assertEqual(publish_data._AUTH, [])                   # cleared afterwards
+            self.assertNotIn("extraheader", git(self.remote, "config", "--list") if os.path.exists(self.remote) else "")
+        finally:
+            del os.environ["PUBLISH_TOKEN"]
+
     def test_the_commit_is_by_the_bot_not_by_a_person(self):
         publish_data.publish(self.data, self.remote)
         self.assertEqual(git(self.remote, "log", "-1", "--format=%an", "data").strip(), "showme-council bot")

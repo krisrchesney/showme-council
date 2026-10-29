@@ -1,31 +1,52 @@
-# Step 1 of T-1: ONE manual run to prove the subscription token and the pipeline work on GitHub's
-# runners. No schedule yet, no commit-back, no Pages. The cron goes in only after this succeeds.
+# The pipeline on GitHub's runners. Manual only for now: no schedule, and nothing is published unless a person
+# dispatches it with publish=true. The nightly cron goes in only after the user says so.
+#
+# Two jobs, split on purpose:
+#   run      reads the repo, holds the model token (CLAUDE_CODE_OAUTH_TOKEN), runs the agents. Read-only: it cannot
+#            write to the repo or publish anything.
+#   publish  has write access (commit results to the `data` branch, deploy GitHub Pages) but no model token and
+#            never calls a model. Skipped unless publish=true, mode=nightly and dry_run=false.
 #
 # Safety for a public repo that holds a token secret:
-#   - triggers: workflow_dispatch only (no pull_request / pull_request_target / push / issue_comment),
-#     so nobody's fork or comment can run it. Dispatch needs write access to this repo.
-#   - permissions: contents: read, nothing else.
+#   - triggers: workflow_dispatch only (no pull_request / pull_request_target / push / issue_comment), so nobody's
+#     fork or comment can run it. Dispatch needs write access to this repo.
+#   - top-level permissions: contents: read. Write permissions exist on the publish job only.
 #   - every action is pinned to a full commit SHA (tag in the comment).
-#   - the token is set on exactly one step; inputs reach the shell only as env vars, validated first.
-# Auth: Claude subscription. Repo secret CLAUDE_CODE_OAUTH_TOKEN (from `claude setup-token`).
+#   - the model token is set on exactly one step; inputs reach the shell only as env vars, validated first.
+# Auth for the agents: Claude subscription, repo secret CLAUDE_CODE_OAUTH_TOKEN (from `claude setup-token`).
 name: nightly
 
 on:
   workflow_dispatch:
     inputs:
+      mode:
+        description: "document: one document, real agents.  nightly: everything new in the last 3 days."
+        type: choice
+        options: [document, nightly]
+        default: document
       since:
-        description: "First meeting date to look at (YYYY-MM-DD)"
+        description: "document mode: first meeting date (YYYY-MM-DD)"
         required: true
         default: "2026-10-22"
       until:
-        description: "Day after the last meeting date (YYYY-MM-DD)"
+        description: "document mode: day after the last meeting date (YYYY-MM-DD)"
         required: true
         default: "2026-10-23"
       doc_id:
-        description: "Document to run through the agents"
+        description: "document mode: document to run through the agents"
         required: true
         default: "kc-19561-minutes"
-  # T-1 turns the schedule on after this manual run succeeds and the user says so.
+      dry_run:
+        description: "nightly mode: use the canned test agents and test data. No model calls, no plan usage, nothing publishable."
+        type: boolean
+        default: true
+      publish:
+        description: "nightly mode with dry_run off: commit results to the data branch and deploy Pages. Needs the user's OK."
+        type: boolean
+        default: false
+  # T-1 turns the schedule on only after the user says so (and after the planted-error test is in):
+  # schedule:
+  #   - cron: "30 7 * * *"   # 07:30 UTC = 2:30 AM CDT
 
 permissions:
   contents: read
@@ -51,31 +72,81 @@ jobs:
       - run: python scripts/check.py
       - name: Check the inputs
         env:
+          MODE: ${{ inputs.mode }}
           SINCE: ${{ inputs.since }}
           UNTIL: ${{ inputs.until }}
           DOC_ID: ${{ inputs.doc_id }}
         run: |
+          [[ "$MODE" =~ ^(document|nightly)$ ]] || { echo "bad mode"; exit 1; }
           [[ "$SINCE" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]] || { echo "bad since"; exit 1; }
           [[ "$UNTIL" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]] || { echo "bad until"; exit 1; }
           [[ "$DOC_ID" =~ ^kc-[0-9]+-(minutes|agenda)$ ]] || { echo "bad doc_id"; exit 1; }
-      - name: Ingest and run the three agents
+      - name: Run the pipeline
         env:
           CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          MODE: ${{ inputs.mode }}
+          DRY_RUN: ${{ inputs.dry_run }}
           SINCE: ${{ inputs.since }}
           UNTIL: ${{ inputs.until }}
           DOC_ID: ${{ inputs.doc_id }}
           SHOWME_DATA_DIR: ${{ runner.temp }}/showme-data
           SHOWME_SITE_DIR: ${{ runner.temp }}/showme-site
         run: |
-          python -m pipeline.run ingest --since "$SINCE" --until "$UNTIL" --limit 1
-          python -m pipeline.run process "$DOC_ID"
-          python -m pipeline.run report "$DOC_ID" | tee -a "$GITHUB_STEP_SUMMARY"
+          if [ "$MODE" = "document" ]; then
+            python -m pipeline.run ingest --since "$SINCE" --until "$UNTIL" --limit 1
+            python -m pipeline.run process "$DOC_ID"
+            python -m pipeline.run build-site
+            python -m pipeline.run report "$DOC_ID" | tee -a "$GITHUB_STEP_SUMMARY"
+          elif [ "$DRY_RUN" = "true" ]; then
+            python -m pipeline.run nightly --fixture --stub tests/fixtures/kansascity/stub --days 10 --loop-cap 4.00
+          else
+            python -m pipeline.run nightly --days 3 --max-docs 4 --loop-cap 4.00
+          fi
+      - name: Show what would be committed to the data branch (nothing is pushed)
+        env:
+          REPO_URL: ${{ github.server_url }}/${{ github.repository }}.git
+          SHOWME_DATA_DIR: ${{ runner.temp }}/showme-data
+        run: python scripts/publish_data.py --data "$SHOWME_DATA_DIR" --remote "$REPO_URL" --dry-run | tee -a "$GITHUB_STEP_SUMMARY"
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: showme-run
           path: |
             ${{ runner.temp }}/showme-data/published
+            ${{ runner.temp }}/showme-data/state.json
+            ${{ runner.temp }}/showme-data/metrics.jsonl
             ${{ runner.temp }}/showme-data/work/*/report.json
             ${{ runner.temp }}/showme-data/work/*/usage_meta.json
           retention-days: 7
           if-no-files-found: error
+      - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          path: ${{ runner.temp }}/showme-site
+
+  publish:
+    needs: run
+    if: ${{ inputs.publish == true && inputs.mode == 'nightly' && inputs.dry_run == false }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: showme-run
+          path: ${{ runner.temp }}/showme-data
+      - name: Commit the results to the data branch
+        env:
+          PUBLISH_TOKEN: ${{ github.token }}
+          REPO_URL: ${{ github.server_url }}/${{ github.repository }}.git
+          SHOWME_DATA_DIR: ${{ runner.temp }}/showme-data
+        run: python scripts/publish_data.py --data "$SHOWME_DATA_DIR" --remote "$REPO_URL"
+      - id: deploy
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
