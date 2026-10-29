@@ -252,6 +252,31 @@ then, the real defence is the code layer and the city's vote record, not the che
   and re-score the saved outputs for free as a labelled post-hoc re-score, then T-12 and T-13.
   Only then consider scaling to more documents.
 
+## Test 2, post-hoc re-score after T-11 (labelled: this is **not** a pass of the pre-registered test)
+
+The pre-registered result stands as reported above: **document 3 failed (7 of 10, needed 80%)**. T-11 then fixed the
+verifier bug behind two of its three rejections: the check compared a claimed "held" with the word "held", but the
+city's committees record "Hold on Agenda". The check now matches the city's own wording for held, referred (including
+"Re-referred") and advanced ("Adv and Do Pass", "Move to Advance"), and no longer reads "Adv and Do Pass" (a committee
+advancing an item) as the Council "passing" it. Wrong pairings are still disagreements; tests cover each direction.
+
+The same saved agent outputs re-scored with the T-11 code (no model call):
+
+| | Facts passing before T-11 | After T-11 | Change |
+|---|---|---|---|
+| Oct 22 Council (60 facts) | 55 (92%) | 55 (92%) | none |
+| Oct 8 Council (48 facts) | 46 (96%) | 46 (96%) | none |
+| Sept 8 committee (10 facts) | 7 (70%) | **9 (90%)** | the two "held until September 22" facts now agree with the city's "Hold on Agenda" |
+
+Nothing the city's record contradicts is accepted in any of the three. The one remaining rejection in document 3 is the
+"Section 2-90" statement whose numbers aren't in its quote (correct by design). So under today's verifier document 3
+would score 90%. That is a statement about the verifier, not a retroactive pass; the criteria were fixed before the runs
+and the code has changed since.
+
+One limit: a committee's "Adv and Do Pass" claims still come back from the extractor as outcome "other" (checkable only
+once the extractor prompt tells the model to use the new `advanced` value; T-15), so those stay unchecked against the
+city's record for now.
+
 ---
 
 # Test 3: does the fact-checker catch planted errors? (T-5)
