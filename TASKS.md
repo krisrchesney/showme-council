@@ -18,8 +18,11 @@ Template:
 ## Ready
 
 ### T-1: Turn on the nightly GitHub Actions run
-Status: In progress. Step 1 done 2026-10-29 (repo created, token saved, one manual run green). Remaining steps need the user's OK and
-an answer on repo visibility (GitHub Free needs a public repo for Pages).
+Status: In progress. Done 2026-10-29: repo created (public, as the user chose), token saved, one manual run green, the two-job workflow
+(run: read-only with the model token; publish: write access, no model), the data-branch commit-back and restore, a GitHub dry run (green,
+0 tokens), minutes-only nightly. NOT done: enabling GitHub Pages was blocked by the auto-mode safety classifier (it creates a public
+surface). The user enables it (repo Settings > Pages > Source: GitHub Actions) or allows the action; then ONE publishing dispatch
+(mode=nightly dry_run=false publish=true days=8 max_docs=1), the user looks at the page, and only then the schedule.
 Owns: .github/workflows/nightly.yml; DESIGN.md "State between nights" paragraph
 Blocked by: none
 Uses plan usage: yes (~75k tokens per document, ~5 documents a week)
@@ -55,16 +58,17 @@ Done when:
 - [ ] No secrets are used by this workflow
 - [ ] README has a status badge for it
 
-### T-3: Agendas must never read as decisions
-Status: Ready
-Owns: pipeline/verify.py `code_checks()` (new `agenda_tense` check); tests/test_verify.py new class; tests/fixtures/kansascity/ agenda text (via scripts/refresh_fixture.py --agenda)
+### T-3: The agenda guard: an agenda is a plan, never an outcome
+Status: Ready (core of docs/AGENDA-VS-MINUTES.md)
+Owns: pipeline/verify.py `code_checks()` (new `agenda_states_outcome` check); tests/test_verify.py new class; tests/fixtures/kansascity/ agenda text (via scripts/refresh_fixture.py --agenda)
 Blocked by: none
 Uses plan usage: no
-Why: An agenda says what's planned. A claim like "passed" on an agenda is wrong even if the quote exists.
+Why: Anything the model writes from an agenda is a plan. "Passed", "approved" or "authorizes" on an agenda is wrong even if the quote exists, and the agenda-vs-minutes feature makes agendas a first-class input.
 Done when:
-- [ ] For `kind == "agenda"`, a claim with outcome passed/adopted/failed, or "passed"/"approved" in the statement, is rejected with reason `agenda_states_outcome`
+- [ ] For `kind == "agenda"`, a claim with outcome passed/adopted/failed, or "passed", "approved", "adopted", "authorizes" in the statement, is rejected with reason `agenda_states_outcome`
 - [ ] The KC agenda PDF text for event 19561 is in the fixture, so the offline nightly test no longer logs an ingest error for it
-- [ ] Tests cover both a rejected and an allowed ("is scheduled for a vote") agenda claim
+- [ ] Tests cover a rejected claim and an allowed one ("is scheduled for a vote", "is listed on the agenda")
+- [ ] The extractor and summarizer prompts say agenda claims use "scheduled" or "listed" (checked by a prompt test)
 
 ### T-4: Add Columbia as a second Legistar source
 Status: Ready
@@ -153,6 +157,65 @@ Done when:
 - [ ] The prompt says: use `advanced` when the minutes show a committee advancing an item to the Council ("Adv and Do Pass", "Move to Advance"); never `passed` for that
 - [ ] One Sonnet run on the committee minutes (kc-19460-minutes) into experiments/ shows `advanced` claims that the city's record confirms
 - [ ] Coverage and pass rate on that run are no worse than the saved one
+
+### T-16: The matcher: classify every matter at a meeting from the API rows
+Status: Ready
+Owns: pipeline/compare.py (new); tests/test_compare.py (new); tests/fixtures/kansascity/ (saved event-item rows for 19561, 19539, 19521 and 19460, with their sequences and actions)
+Blocked by: none
+Uses plan usage: no
+Why: Probe (docs/AGENDA-VS-MINUTES.md): the API marks each row planned (agenda sequence) or recorded (minutes sequence), and a matter's rows tell what happened to it. The comparison can be computed with no model.
+Done when:
+- [ ] Each matter at a meeting is classified: carried through, advanced on the floor, deferred, added at the meeting, on the agenda with no minutes row, or receive and file
+- [ ] Pinned on the saved meetings: 260947 and 260946 (2026-10-22) are advanced on the floor, 260850 (2026-10-01) is added at the meeting, 260445 (2026-10-22) is deferred, 260893 (2026-10-01) planned introduction ended up referred
+- [ ] Per-matter lifecycles rebuilt from rows across meetings, with "held N times before this meeting"; 260445 shows 9 holds from 2026-05-07 when given the history rows
+- [ ] The output carries only fields from the city's rows; no model call, no generated text
+
+### T-17: The one-meeting comparison page
+Status: Ready
+Owns: pipeline/site.py (new `compare_page()`); tests/test_compare_page.py (new)
+Blocked by: T-16
+Uses plan usage: small (plain-language labels, ~21k tokens per Council meeting with the check pass)
+Why: The user wants to see planned versus happened for a meeting, and what was held, advanced or added.
+Done when:
+- [ ] Counts per class first, then every item with its class, action, a link to the official record, and a label
+- [ ] The page says "planned" means the clerk's final-revised docket, and labels each part as from the city's record or AI-written
+- [ ] A plain-language label shows only if the fact-checker passes it against the item's own title; otherwise the trimmed official title is shown
+- [ ] Not added to the nightly and not published until the user has seen it on saved meetings
+
+### T-18: The backfill: about 170 meetings of structured rows
+Status: Ready
+Owns: scripts/backfill_rows.py (new); tests/test_backfill_rows.py (new); the cache file layout on the data branch
+Blocked by: T-16
+Uses plan usage: no (about 340 API calls at the polite 0.5 s pace, a few minutes)
+Why: Trends need many meetings. The rows for every Council meeting with minutes from 2021 on are enough to classify and to rebuild lifecycles; no per-matter history calls are needed.
+Done when:
+- [ ] Fetches each meeting's event and item rows once, caches them compactly, and resumes after an interruption
+- [ ] An offline test with canned API responses covers resume, a meeting with no items, and a changed row count
+- [ ] Reports how many meetings, matters and rows were fetched and any it could not
+- [ ] Nothing is published; the cache is only an input to T-19
+
+### T-19: The trends page and the keyword topic rules
+Status: Ready
+Owns: pipeline/topics.py (new); pipeline/site.py (new `trends_page()`); tests/test_topics.py (new)
+Blocked by: T-16, T-18
+Uses plan usage: yes, about 55k tokens once (a sample of 300 item titles, to measure the keyword rules against a model); anything larger needs the user's OK first
+Why: Show whether certain topics are deferred more, advanced on the floor more, or take longer to pass, over time.
+Done when:
+- [ ] Keyword rules assign a topic to each matter with no model call; a labelled sample of 300 titles measures their accuracy and the result is written down
+- [ ] Per quarter and topic: items planned, share carried through, share deferred, matters held more than once, time from introduction to passage, share advanced on the floor
+- [ ] Any narrative sentence has every number checked against the table by code, and the fact-checker reads it against the table; failures are dropped and the table stands alone
+- [ ] Tagging every past matter with a model is not done (about 1.1M tokens)
+
+### T-20: Snapshot upcoming agendas each night
+Status: Ready
+Owns: scripts/snapshot_agendas.py (new); a step in .github/workflows/nightly.yml (with the user's OK, it is a workflow change); tests/test_snapshot_agendas.py (new)
+Blocked by: none
+Uses plan usage: no
+Why: The API keeps only the final-revised agenda, published after the meeting started. To know what was originally planned, the agenda has to be saved before it is revised.
+Done when:
+- [ ] Each night, for meetings in the next 7 days with an agenda file, saves the event's item rows and the agenda file's URL with the fetch time, to the data branch; never overwrites an earlier snapshot of the same meeting
+- [ ] When the meeting has happened, T-16 can compare the first snapshot to the minutes, and says which agenda it used (first snapshot or final-revised)
+- [ ] Reports how many days ahead of a Council meeting an agenda first appears, once there is data
 
 ## In progress
 
