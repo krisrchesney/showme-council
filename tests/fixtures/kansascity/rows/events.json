@@ -1,0 +1,317 @@
+[
+{
+"event_id": 19187,
+"date": "2026-05-07",
+"body": "Council",
+"agenda_status": "Final-Revised",
+"agenda_published": "2026-05-07T20:49:39.277",
+"minutes_status": "Final",
+"minutes_published": "2026-05-07T21:51:28.627"
+},
+{
+"event_id": 19194,
+"date": "2026-05-12",
+"body": "Finance, Governance and Public Safety Committee",
+"agenda_status": "Final-Revised",
+"agenda_published": "2026-05-11T22:01:45.477",
+"minutes_status": "Final",
+"minutes_published": "2026-09-17T14:18:21.843"
+},
+{
+"event_id": 19214,
+"date": "2026-05-19",
+"body": "Finance, Governance and Public Safety Committee",
+"agenda_status": "Final",
+"agenda_published": "2026-05-18T21:48:06.067",
+"minutes_status": "Final-Revised",
+"minutes_published": "2026-06-02T16:55:44.813"
+},
+{
+"event_id": 19220,
+"date": "2026-05-21",
+"body": "Council",
+"agenda_status": "Final-Revised",
+"agenda_published": "2026-05-22T14:08:00",
+"minutes_status": "Final",
+"minutes_published": "2026-05-22T21:57:59.977"
+},
+{
+"event_id": 19243,
+"date": "2026-06-11",
+"body": "Council",
+"agenda_status": "Final-Revised",
+"agenda_published": "2026-06-12T14:26:45.003",
+"minutes_status": "Final",
+"minutes_published": "2026-06-15T18:52:19.13"
+},
+{
+"event_id": 19285,
+"date": "2026-06-30",
+"body": "Neighborhood Planning and Development Committee",
+"agenda_status": "Final-Revised",
+"agenda_published": "2026-06-29T22:28:36.277",
+"minutes_status": "Final",
+"minutes_published": null
+},
+{
+"event_id": 19288,
+"date": "2026-07-02",
+"body": "Council",
+"agenda_status": "Final-Revised",
+"agenda_published": "2026-07-02T22:01:08.25",
+"minutes_status": "Final",
+"minutes_published": "2026-07-07T22:42:51.837"
+},
+{
+"event_id": 19312,
+"date": "2026-07-07",
+"body": "Neighborhood Planning and Development Committee",
+"agenda_status": "Final",
+"agenda_published": "2026-07-07T13:36:08.543",
+"minutes_status": "Draft",
+"minutes_published": null
+},
+{
+"event_id": 19321,
+"date": "2026-07-09",
+"body": "Council",
+"agenda_status": "Final-Revised",
+"agenda_published": "2026-07-10T16:23:50.14",
+"minutes_status": "Final",
+"minutes_published": "2026-07-13T19:35:40.833"
+},
+{
+"event_id": 19331,
+"date": "2026-07-14",
+"body": "Neighborhood Planning and Development Committee",
+"agenda_status": "Final",
+"agenda_published": "2026-07-13T18:24:06.16",
+"minutes_status": "Final",
+"minutes_published": null
+},
+{
+"event_id": 19395,
+"date": "2026-08-06",
+"body": "Council",
+"agenda_status": "Final-Revised",
+"agenda_published": "2026-08-06T13:32:02.683",
+"minutes_status": "Final",
+"minutes_published": "2026-08-07T13:32:38.683"
+},
+{
+"event_id": 19404,
+"date": "2026-08-11",
+"body": "Neighborhood Planning and Development Committee",
+"agenda_status": "Final",
+"agenda_published": "2026-08-10T16:34:34.337",
+"minutes_status": "Final",
+"minutes_published": null
+},
+{
+"event_id": 19405,
+"date": "2026-08-11",
+"body": "Finance, Governance and Public Safety Committee",
+"agenda_status": "Final",
+"agenda_published": "2026-08-11T18:00:44.12",
+"minutes_status": "Final",
+"minutes_published": "2026-08-14T17:21:45.46"
+},
+{
+"event_id": 19409,
+"date": "2026-08-13",
+"body": "Council",
+"agenda_status": "Final-Revised",
+"agenda_published": "2026-08-14T15:15:57.937",
+"minutes_status": "Final",
+"minutes_published": "2026-08-14T15:42:08.613"
+},
+{
+"event_id": 19426,
+"date": "2026-08-18",
+"body": "Finance, Governance and Public Safety Committee",
+"agenda_status": "Final-Revised",
+"agenda_published": "2026-08-17T21:47:26.883",
+"minutes_status": "Final",
+"minutes_published": "2026-09-17T14:43:37.803"
+},
+{
+"event_id": 19434,
+"date": "2026-08-20",
+"body": "Council",
+"agenda_status": "Final-Revised",
+"agenda_published": "2026-08-21T12:42:05.727",
+"minutes_status": "Final",
+"minutes_published": "2026-08-21T12:57:46.517"
+},
+{
+"event_id": 19443,
+"date": "2026-09-01",
+"body": "Finance, Governance and Public Safety Committee",
+"agenda_status": "Final-Revised",
+"agenda_published": "2026-08-31T21:40:23.453",
+"minutes_status": "Final",
+"minutes_published": "2026-09-11T18:29:39.473"
+},
+{
+"event_id": 19445,
+"date": "2026-09-03",
+"body": "Council",
+"agenda_status": "Final-Revised",
+"agenda_published": "2026-09-08T14:47:42.223",
+"minutes_status": "Final",
+"minutes_published": "2026-09-08T15:49:04.253"
+},
+{
+"event_id": 19460,
+"date": "2026-09-08",
+"body": "Finance, Governance and Public Safety Committee",
+"agenda_status": "Final-Revised",
+"agenda_published": "2026-09-08T13:11:58.2",
+"minutes_status": "Final",
+"minutes_published": "2026-09-17T14:48:50.953"
+},
+{
+"event_id": 19474,
+"date": "2026-09-10",
+"body": "Council",
+"agenda_status": "Final-Revised",
+"agenda_published": "2026-09-10T21:53:28.93",
+"minutes_status": "Final",
+"minutes_published": "2026-09-10T23:13:23.33"
+},
+{
+"event_id": 19477,
+"date": "2026-09-22",
+"body": "Finance, Governance and Public Safety Committee",
+"agenda_status": "Final-Revised",
+"agenda_published": "2026-09-21T16:33:33.95",
+"minutes_status": "Final",
+"minutes_published": null
+},
+{
+"event_id": 19480,
+"date": "2026-09-22",
+"body": "Transportation, Infrastructure and Operations Committee",
+"agenda_status": "Final",
+"agenda_published": "2026-09-21T21:32:05.74",
+"minutes_status": "Final",
+"minutes_published": null
+},
+{
+"event_id": 19481,
+"date": "2026-09-22",
+"body": "Neighborhood Planning and Development Committee",
+"agenda_status": "Final",
+"agenda_published": "2026-09-15T18:02:43.537",
+"minutes_status": "Final",
+"minutes_published": null
+},
+{
+"event_id": 19483,
+"date": "2026-09-24",
+"body": "Council",
+"agenda_status": "Final-Revised",
+"agenda_published": "2026-09-24T21:39:19.38",
+"minutes_status": "Final",
+"minutes_published": "2026-09-25T17:50:46.907"
+},
+{
+"event_id": 19515,
+"date": "2026-09-29",
+"body": "Transportation, Infrastructure and Operations Committee",
+"agenda_status": "Final",
+"agenda_published": "2026-09-28T21:57:39.787",
+"minutes_status": "Final",
+"minutes_published": null
+},
+{
+"event_id": 19516,
+"date": "2026-09-29",
+"body": "Neighborhood Planning and Development Committee",
+"agenda_status": "Final",
+"agenda_published": "2026-09-28T16:49:23.62",
+"minutes_status": "Final",
+"minutes_published": null
+},
+{
+"event_id": 19521,
+"date": "2026-10-01",
+"body": "Council",
+"agenda_status": "Final-Revised",
+"agenda_published": "2026-10-02T12:27:37.103",
+"minutes_status": "Final",
+"minutes_published": "2026-10-02T12:51:50.55"
+},
+{
+"event_id": 19535,
+"date": "2026-10-06",
+"body": "Transportation, Infrastructure and Operations Committee",
+"agenda_status": "Canceled",
+"agenda_published": "2026-10-02T16:47:27.91",
+"minutes_status": "Draft",
+"minutes_published": null
+},
+{
+"event_id": 19536,
+"date": "2026-10-06",
+"body": "Finance, Governance and Public Safety Committee",
+"agenda_status": "Final",
+"agenda_published": "2026-10-06T13:11:25.797",
+"minutes_status": "Draft",
+"minutes_published": null
+},
+{
+"event_id": 19538,
+"date": "2026-10-06",
+"body": "Neighborhood Planning and Development Committee",
+"agenda_status": "Final",
+"agenda_published": "2026-10-05T21:09:33.627",
+"minutes_status": "Draft",
+"minutes_published": null
+},
+{
+"event_id": 19539,
+"date": "2026-10-08",
+"body": "Council",
+"agenda_status": "Final-Revised",
+"agenda_published": "2026-10-09T13:11:31.767",
+"minutes_status": "Final",
+"minutes_published": "2026-10-09T14:52:22.057"
+},
+{
+"event_id": 19549,
+"date": "2026-10-20",
+"body": "Neighborhood Planning and Development Committee",
+"agenda_status": "Final-Revised",
+"agenda_published": "2026-10-19T16:56:02.543",
+"minutes_status": "Final",
+"minutes_published": null
+},
+{
+"event_id": 19552,
+"date": "2026-10-20",
+"body": "Finance, Governance and Public Safety Committee",
+"agenda_status": "Final",
+"agenda_published": "2026-10-19T21:43:42.797",
+"minutes_status": "Draft",
+"minutes_published": null
+},
+{
+"event_id": 19554,
+"date": "2026-10-20",
+"body": "Transportation, Infrastructure and Operations Committee",
+"agenda_status": "Final",
+"agenda_published": "2026-10-19T20:55:54.643",
+"minutes_status": "Final",
+"minutes_published": null
+},
+{
+"event_id": 19561,
+"date": "2026-10-22",
+"body": "Council",
+"agenda_status": "Final-Revised",
+"agenda_published": "2026-10-23T18:50:45.927",
+"minutes_status": "Final",
+"minutes_published": "2026-10-23T18:58:39.1"
+}
+]

@@ -87,3 +87,5 @@ Read these before starting a ticket.
 - Test 2: before comparing models, pre-register the pass criteria and freeze verify.py, the prompts and the thresholds. When a document fails because of the verifier (T-11), report the failure, ticket the fix, and re-score afterwards as a labelled post-hoc run. Never count it as a pass.
 - T-5: the planted-error test caught a leak the unit tests missed: the published report listed the fakes' ids. Publish counts only, and test the published file for them.
 - T-11: a check that compares a claim with the city's record must use the city's wording ("Hold on Agenda", "Adv and Do Pass"), and a substring is not a match ("pass" is inside "Adv and Do Pass").
+- T-16: the city's item rows are one per step, not one per item. Count matters, not rows: my first count of "minutes-only rows" overstated late additions many times over.
+- T-3: adding a real agenda to the fixtures turned an expected-failure test into a pass; keep the behaviour the old test protected (a failed fetch is recorded and retried) with a test that causes the failure on purpose.

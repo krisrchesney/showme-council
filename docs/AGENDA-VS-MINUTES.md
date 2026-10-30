@@ -64,8 +64,9 @@ For each meeting, each matter on it falls into one class, from the row patterns 
 | Class | Rule |
 |---|---|
 | **Carried through** | On the agenda; the minutes record a final action (Passed, Adopted, Failed, Adopted as Substituted ...). |
-| **Advanced on the floor** | On the agenda at an earlier step (introduce, consider); minutes-only rows then advance it and it passes the same day. |
-| **Deferred** | Final action is Held on Docket, Hold on Agenda, referred or Re-referred. With **how many times it has been held before** (from the matter's rows at earlier meetings). |
+| **Advanced on the floor** | On the agenda at an earlier step (introduce, consider, amend); minutes-only rows then advance it and it moves on the same day. A separate flag marks an **ordinance decided on its first appearance**, the case that really skips the usual path (introduce, committee, return); resolutions are excluded because honoring someone or recognizing a month is routinely adopted the day it appears. |
+| **Introduced** | The matter's first appearance, ending introduced or referred. The normal start of a matter, not a deferral. |
+| **Deferred** | Final action is Held on Docket, Hold on Agenda or Re-referred, or referred when the matter had been seen before. With **how many times it has been held before** (from the matter's rows at earlier meetings). |
 | **Added at the meeting** | The matter has no row with an agenda sequence at this meeting. |
 | **On the agenda, no minutes row** | Agenda row with no minutes row for that matter at all. None seen in the four meetings; reported if it happens. |
 | **Receive and file / communications** | Listed separately; they aren't decisions. |
@@ -73,6 +74,43 @@ For each meeting, each matter on it falls into one class, from the row patterns 
 Everything on the comparison page that is a count, a class, a date, an action or a "held N times" comes from those rows.
 "Forgotten" is a loaded word and a judgement; the page shows the data (held 9 times since May 7) and does not label anything
 forgotten.
+
+## Results on the four saved meetings (T-16, `pipeline/compare.py`)
+
+Computed from the city's rows only: no model, 0 tokens, no generated text. 35 meetings of rows since April were used
+for the "held before" counts.
+
+| Meeting | Matters | Carried through | Advanced on the floor | Deferred | Introduced | Added at the meeting | On agenda, no minutes row | Receive and file | Matters held at least once before |
+|---|---|---|---|---|---|---|---|---|---|
+| Council 2026-10-22 | 47 | 27 | 2 | 1 | 15 | 0 | 0 | 2 | 6 |
+| Council 2026-10-08 | 34 | 7 | 2 | 2 | 23 | 0 | 0 | 0 | 5 |
+| Council 2026-10-01 | 31 | 18 | 2 | 0 | 10 | 1 | 0 | 0 | 4 |
+| FGPS committee 2026-09-08 | 5 | 3 | 0 | 2 | 0 | 0 | 0 | 0 | 2 |
+
+The items behind the numbers:
+
+| Class | Matters | Detail |
+|---|---|---|
+| Advanced on the floor, first appearance (the real skips) | 260946, 260947 (Oct 22) | New ordinances: planned as Move to Consider / Move To Introduce, then Move to Advance and Passed the same day. |
+| Advanced on the floor, already seen | 260888, 260889 (Oct 8); two on Oct 1 | Committee substitutes seen at 2 earlier meetings; amended, advanced and passed. Not skipping anything. |
+| Added at the meeting | 260850 (Oct 1) | A reconsideration with no agenda row at all: Move to Reconsider, Move to Advance, Passed. The only one in the four meetings. |
+| Deferred, held N times | 260445 (Oct 22): **held 8 times before**, first seen 2026-05-07 (168 days) | Held 8 times before Oct 22: a committee Hold on Agenda on 05-12, then Held on Docket on 05-21, 06-11, 07-02, 07-09, 08-13, 09-10 and 10-08; held again on 10-22. The city's own history endpoint counts the same 9 holds in total. Held 7 times before Oct 8. |
+| Held, then passed | 260563 (Oct 8): held 6 times before it passed; 260705 held 3; 260808 held 2 | |
+| Committee deferrals | 260729 (held once before), 260834 (Sept 8) | Hold on Agenda. |
+
+**What surprised me:**
+1. **"Added at the meeting" is rare.** One matter in four meetings. My first count of minutes-only rows (6, 7 and 11 per
+   meeting) overstated it by a wide margin, because a matter has one row per step: an item that was introduced and then
+   advanced has minutes-only rows without being a late addition. Count matters, not rows.
+2. **Nothing planned went missing from the minutes.** Zero agenda items without a minutes row in all four. The "forgotten"
+   signal in this data is not "dropped" but "held again and again": 260445 has sat on the docket since May.
+3. **Most agenda items are not decisions.** 15, 23 and 10 of each Council meeting's matters are newly introduced and referred.
+   A comparison page should separate decisions from introductions or the counts mislead.
+4. **Most skipped-the-usual-path cases are not what they look like.** Of six "advanced on the floor" matters at the three Council
+   meetings, only two (260946, 260947) were first-appearance ordinances decided the same day; the other four had been seen at earlier
+   meetings (260888 and 260889 are amended committee substitutes). Hence the extra flag.
+5. **The city edits records after the fact.** When I refreshed a fixture today, one item's title (260943) had been shortened
+   since I first saved it. That is a small proof that only a snapshot taken at the time preserves what was said then.
 
 ## Which claims would be code-verified and which model-written
 
@@ -112,16 +150,30 @@ sample shows the rules are weak) will be put to the user first.
    more than once, time from introduction to passage, share advanced on the floor. Tables and small charts from the
    computed data; an optional checked narrative.
 
+## T-20: agenda snapshots, built as a dry run (not scheduled)
+
+`scripts/snapshot_agendas.py` saves each upcoming agenda (Council and the three standing committees) as one file per
+version, `DIR/<event_id>/<fetched-at>.json`, with the item rows, the agenda status and its publish time. A version
+identical to the latest saved one is skipped, so a nightly run keeps every real revision and nothing else; a snapshot is
+never overwritten. It is dry-run unless `--save` is passed, makes API calls only, and is **not scheduled**. Seven tests use a
+fake API.
+
+Dry run against the live API on 2026-10-29 for the next 14 days: one meeting had an agenda, today's Council meeting (59
+rows, 57 on the agenda), already `Final-Revised` and published at 21:10 UTC, after the 2 PM start. Nothing is published ahead of
+the others yet, so I can't say how many days before a meeting a first version appears; that is what a few weeks of
+snapshots will show. When it is scheduled it belongs in the nightly's run job (it needs no token) with the snapshots kept on
+the data branch under `snapshots/`, which is a workflow change the user has not approved.
+
 ## Tickets
 
 | | What | Uses plan usage |
 |---|---|---|
-| T-3 | The agenda guard: an agenda-derived claim can't state an outcome | no |
-| T-16 | The matcher: classify every matter at a meeting from the API rows, lifecycles across meetings | no |
+| T-3 | The agenda guard: an agenda-derived claim can't state an outcome. **Done.** | no |
+| T-16 | The matcher: classify every matter at a meeting from the API rows, lifecycles across meetings. **Done.** | no |
 | T-17 | The one-meeting comparison page | small (labels) |
 | T-18 | The backfill: ~170 meetings of structured rows, cached on the data branch | no |
 | T-19 | The trends page and the keyword topic rules, with a sampled check against the model | about 55k, once |
-| T-20 | Snapshot upcoming agendas each night so the original plan is kept before it is revised | no |
+| T-20 | Snapshot upcoming agendas each night so the original plan is kept before it is revised. **Script and dry run done; not scheduled.** | no |
 
 Order: T-3 and T-16 first (free, and they decide whether the idea holds up on real meetings), then T-18, T-17, T-20,
 T-19. Nothing is added to the nightly or published until the matcher is validated on the saved meetings and the user has

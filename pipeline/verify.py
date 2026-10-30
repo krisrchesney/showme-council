@@ -244,6 +244,25 @@ def matter_check(claim, pages, api_items):
     return f"other:{first}" if first else "unlocated"
 
 
+# An agenda is a plan, never an outcome. On an agenda a claim must not say something passed, was approved, or
+# "authorizes" a thing, and must not carry a recorded outcome. "Scheduled", "listed", "would" and "proposed" are fine.
+AGENDA_OUTCOME_FIELDS = ("passed", "adopted", "failed", "held", "referred", "advanced")
+AGENDA_OUTCOME_WORDS = re.compile(
+    r"\b(passed|approved|adopted|authorizes|authorised|authorized|enacted|rejected|failed|voted|advanced|agreed|carried)\b", re.I)
+AGENDA_PLAN_WORDS = re.compile(
+    r"\b(scheduled|planned|proposed|proposes|would|will|to be|seeks|listed|up for|on the agenda|slated)\b", re.I)
+
+
+def agenda_states_outcome(claim, meta):
+    """True if a claim made from an AGENDA reads as a decision."""
+    if meta.get("kind") != "agenda":
+        return False
+    if claim.get("outcome") in AGENDA_OUTCOME_FIELDS:
+        return True
+    statement = claim.get("statement", "")
+    return bool(AGENDA_OUTCOME_WORDS.search(statement)) and not AGENDA_PLAN_WORDS.search(statement)
+
+
 def code_checks(claim, pages, meta, api_items):
     match, score, page = find_quote(claim.get("quote", ""), pages)
     missing = numbers_check(claim, meta)
@@ -264,6 +283,8 @@ def code_checks(claim, pages, meta, api_items):
         reasons.append("quote_from_other_item")
     if api == "disagree":
         reasons.append("api_disagrees")
+    if agenda_states_outcome(claim, meta):
+        reasons.append("agenda_states_outcome")
     return {
         "quote_match": match, "quote_score": score, "quote_page": page,
         "numbers_missing_from_quote": missing, "matter": matter, "api": api,
