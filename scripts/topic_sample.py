@@ -18,7 +18,7 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from pipeline import paths  # noqa: E402
-from pipeline.agents import run_agent  # noqa: E402
+from pipeline.agents import add_breakdowns, run_agent  # noqa: E402
 from pipeline.compare import load_history  # noqa: E402
 from pipeline.topics import DESCRIPTIONS, TOPICS, topic_list, topic_of  # noqa: E402
 
@@ -107,6 +107,7 @@ def run_sample(sample, out_dir, loop_cap=1.5, runner=run_agent):
             tags[t["id"]] = t["topic"]
     res = compare_tags(sample, tags)
     res["usage"] = {"tokens_in": sum(u.get("tokens_in", 0) for u in usages), "tokens_out": sum(u.get("tokens_out", 0) for u in usages),
+                    "tokens": add_breakdowns(u.get("tokens") for u in usages),
                     "turns": sum(u.get("num_turns", 0) for u in usages), "seconds": round(sum(u.get("duration_s", 0.0) for u in usages), 1)}
     return res
 

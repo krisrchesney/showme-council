@@ -13,7 +13,7 @@ anything else: the page says plainly that labels are AI-written.
 
 import re
 
-from pipeline.agents import run_agent
+from pipeline.agents import add_breakdowns, run_agent
 from pipeline.verify import agenda_states_outcome, code_checks, split_pages
 
 BATCH = 60
@@ -28,7 +28,7 @@ def _batches(items, n=BATCH):
 def _summarize(usages):
     tin = sum(u.get("tokens_in", 0) for u in usages)
     tout = sum(u.get("tokens_out", 0) for u in usages)
-    return {"tokens_in": tin, "tokens_out": tout, "turns": sum(u.get("num_turns", 0) for u in usages),
+    return {"tokens_in": tin, "tokens_out": tout, "tokens": add_breakdowns(u.get("tokens") for u in usages), "turns": sum(u.get("num_turns", 0) for u in usages),
             "seconds": round(sum(u.get("duration_s", 0.0) for u in usages), 1),
             "api_equiv_usd": round(sum(u.get("api_equiv_usd", 0.0) for u in usages), 4)}
 

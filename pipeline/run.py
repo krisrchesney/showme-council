@@ -24,7 +24,7 @@ import os
 import sys
 
 from pipeline import canary, paths
-from pipeline.agents import AgentOutputError, find_claude, login_instructions, run_agent
+from pipeline.agents import AgentOutputError, add_breakdowns, find_claude, login_instructions, run_agent, token_breakdown
 from pipeline.site import build_site
 from pipeline.sources import get_source
 from pipeline.sources.base import read_raw, write_raw
@@ -118,6 +118,8 @@ def _norm_usage(u):
         "tokens_in": u.get("tokens_in", (raw.get("input_tokens") or 0) + (raw.get("cache_creation_input_tokens") or 0)
                         + (raw.get("cache_read_input_tokens") or 0)),
         "tokens_out": u.get("tokens_out", raw.get("output_tokens") or 0),
+        # fresh input / cache read / cache write / output; None for a record saved before the breakdown was kept
+        "tokens": u.get("tokens") or (token_breakdown(raw) if raw else None),
         "turns": u.get("num_turns") or 0,
         "seconds": u.get("duration_s") or 0.0,
         "api_equiv_usd": u.get("api_equiv_usd", u.get("cost_usd")) or 0.0,
@@ -130,6 +132,7 @@ def summarize_usage(stages):
     by = {k: _norm_usage(v) for k, v in stages.items()}
     total = {key: sum(v[key] for v in by.values()) for key in ("tokens_in", "tokens_out", "turns")}
     total["seconds"] = round(sum(v["seconds"] for v in by.values()), 1)
+    total["tokens"] = add_breakdowns([v["tokens"] for v in by.values()])
     total["api_equiv_usd"] = round(sum(v["api_equiv_usd"] for v in by.values()), 4)
     return {"usage": dict(total, by_stage=by),
             "models": sorted({m for v in by.values() for m in v["models"]})}
@@ -320,6 +323,9 @@ def report_markdown(doc_id):
         f"- models: {', '.join(r['models']) or 'none'}; auth: {r.get('auth')}",
         f"- usage: {u['tokens_in']:,} tokens in, {u['tokens_out']:,} out, {u['turns']} turns, {u['seconds']:.0f} s",
     ]
+    if u.get("tokens"):
+        t = u["tokens"]
+        lines.append(f"  - token kinds: {t['input']:,} fresh input, {t['cacheRead']:,} cache read, {t['cacheWrite']:,} cache write, {t['output']:,} output")
     for name, v in u["by_stage"].items():
         lines.append(f"  - {name}: {v['tokens_in']:,} in, {v['tokens_out']:,} out, {v['turns']} turns, {v['seconds']:.0f} s")
     if r.get("reject_reasons"):
