@@ -466,6 +466,8 @@ def main(argv=None):
     p.add_argument("--metrics", default=None, help="metrics.jsonl (default: data/metrics.jsonl)")
     p.add_argument("--labels", nargs="*", default=None, help="labels-*.json files (default: preview/labels-*.json)")
     p.add_argument("--topic-sample", default=None, help="a fresh topic_sample.py result used for the accuracy page and for folding weak topics")
+    p.add_argument("--accuracy", default=None, help="the saved accuracy summary (site-inputs/topic_accuracy.json); used instead of --topic-sample")
+    p.add_argument("--scheduled", action="store_true", help="say the site is updated every night (only for a scheduled run)")
     p = sub.add_parser("report", help="markdown summary of one processed document (quality + tokens, turns, time)")
     p.add_argument("doc_id")
     sub.add_parser("claude-path", help="show which claude CLI the pipeline will use, and the exact login command")
@@ -548,10 +550,13 @@ def main(argv=None):
                 with open(lp, encoding="utf-8") as f:
                     labs.update(json.load(f)["labels"])
         acc = None
-        if a.topic_sample:
+        if a.accuracy:
+            with open(a.accuracy, encoding="utf-8") as f:
+                acc = json.load(f)
+        elif a.topic_sample:
             with open(a.topic_sample, encoding="utf-8") as f:
                 acc = explore.accuracy_from_sample(json.load(f))
-        site = explore.build_explorer(a.history, a.out, docs=docs, metrics=metrics, labels=labs, accuracy=acc)
+        site = explore.build_explorer(a.history, a.out, docs=docs, metrics=metrics, labels=labs, accuracy=acc, scheduled=a.scheduled)
         site.write(a.out)
         size = sum(len(t.encode("utf-8")) for t in site.pages.values())
         print(f"{len(site.pages):,} pages, {size / 1e6:.1f} MB -> {os.path.abspath(os.path.join(a.out, 'index.html'))}")

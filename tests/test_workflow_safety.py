@@ -27,11 +27,15 @@ class WorkflowSafetyTests(unittest.TestCase):
         self.text = workflow()
         self.lines = active_lines(self.text)
 
-    def test_triggers_are_manual_only(self):
+    def test_triggers_are_dispatch_and_at_most_the_one_nightly_schedule(self):
         on = self.text.split("\non:\n", 1)[1].split("\npermissions:", 1)[0]
         self.assertIn("workflow_dispatch:", on)
-        for bad in ("pull_request", "pull_request_target", "push:", "issue_comment", "workflow_run", "schedule:", "repository_dispatch"):
+        for bad in ("pull_request", "pull_request_target", "push:", "issue_comment", "workflow_run", "repository_dispatch"):
             self.assertNotIn(bad, "\n".join(active_lines(on)), bad)
+        crons = [ln.strip() for ln in active_lines(on) if "cron:" in ln]
+        self.assertLessEqual(len(crons), 1)
+        for c in crons:
+            self.assertEqual(c.split("#")[0].strip(), 'cron: "30 7 * * *"')
 
     def test_permissions_are_read_only(self):
         block = self.text.split("\npermissions:\n", 1)[1].split("\n\n", 1)[0].strip().splitlines()
@@ -56,7 +60,7 @@ class WorkflowSafetyTests(unittest.TestCase):
             if ln.strip().startswith("if:"):
                 continue                      # a job condition is evaluated by Actions, never by a shell
             if "inputs." in ln or "github.event" in ln:
-                self.assertRegex(ln, r"^\s+[A-Z_]+: \$\{\{ inputs\.\w+ \}\}$", ln)
+                self.assertRegex(ln, r"^\s+[A-Z_]+: \$\{\{ (inputs\.\w+|github\.event_name) \}\}$", ln)
         self.assertIn("bad doc_id", self.text)
         self.assertIn("bad mode", self.text)
         self.assertIn("bad days", self.text)
@@ -83,6 +87,7 @@ class TwoJobSplitTests(unittest.TestCase):
     def setUp(self):
         self.text = workflow()
         self.run_job = job_block(self.text, "run")
+        self.build_job = job_block(self.text, "build")
         self.publish_job = job_block(self.text, "publish")
 
     def test_the_model_job_has_no_write_permissions(self):
@@ -98,8 +103,12 @@ class TwoJobSplitTests(unittest.TestCase):
 
     def test_publishing_needs_an_explicit_yes_and_never_follows_a_dry_run(self):
         cond = re.search(r"(?m)^    if: (.+)$", self.publish_job).group(1)
-        for needle in ("inputs.publish == true", "inputs.mode == 'nightly'", "inputs.dry_run == false"):
+        for needle in ("needs.run.outputs.publish == 'true'", "needs.run.outputs.mode == 'nightly'", "needs.run.outputs.dry_run == 'false'"):
             self.assertIn(needle, cond)
+        self.assertIn("needs: [run, build]", self.publish_job)
+        # a scheduled run publishes; a manual one only when asked. Both are settled in one validated step.
+        self.assertIn('PUBLISH=true', self.run_job)
+        self.assertIn("PUBLISH: ${{ inputs.publish }}", self.run_job)
 
     def test_defaults_are_the_safe_ones(self):
         self.assertRegex(self.text, r"dry_run:\n(?:        .+\n)*?        default: true")
@@ -111,7 +120,7 @@ class TwoJobSplitTests(unittest.TestCase):
         i_run = self.run_job.index("Run the pipeline")
         self.assertLess(i_restore, i_run)
         step = self.run_job[i_restore:i_run]
-        self.assertIn("inputs.mode == 'nightly' && inputs.dry_run == false", step)
+        self.assertIn("steps.cfg.outputs.mode == 'nightly' && steps.cfg.outputs.dry_run == 'false'", step)
         self.assertIn("publish_data.py --restore", step)
         self.assertNotIn("secrets.", step)
 
@@ -119,9 +128,26 @@ class TwoJobSplitTests(unittest.TestCase):
         self.assertRegex(self.text, r"days:\n(?:        .+\n)*?        default: \"3\"")
         self.assertRegex(self.text, r"max_docs:\n(?:        .+\n)*?        default: \"4\"")
 
-    def test_the_schedule_is_still_off(self):
-        self.assertNotIn("schedule:", "\n".join(active_lines(self.text)))
-        self.assertNotIn("cron:", "\n".join(active_lines(self.text)))
+    def test_a_scheduled_run_is_a_real_publishing_nightly_with_fixed_small_limits(self):
+        self.assertIn('if [ "$EVENT" = "schedule" ]; then', self.run_job)
+        self.assertIn("MODE=nightly; DRY_RUN=false; PUBLISH=true; DAYS=3; MAX_DOCS=4", self.run_job)
+
+    def test_the_build_job_has_no_token_no_write_and_no_model(self):
+        self.assertNotIn("permissions:", self.build_job)
+        for bad in ("secrets.", "CLAUDE_CODE_OAUTH_TOKEN", "ANTHROPIC", "PUBLISH_TOKEN", "claude ", "pipeline.run process", "pipeline.run nightly",
+                    "write", "deploy-pages", "publish_data.py"):
+            self.assertNotIn(bad, self.build_job, bad)
+        self.assertIn("persist-credentials: false", self.build_job)
+
+    def test_the_build_scans_for_private_text_before_it_uploads_the_site(self):
+        self.assertLess(self.build_job.index("scan_site.py"), self.build_job.index("upload-pages-artifact"))
+        self.assertIn("--accuracy site-inputs/topic_accuracy.json", self.build_job)
+        self.assertIn("needs.run.outputs.mode == 'nightly' && needs.run.outputs.dry_run == 'false'", self.build_job)
+
+    def test_there_is_one_publish_path_the_run_job_uploads_no_pages_artifact(self):
+        self.assertNotIn("upload-pages-artifact", self.run_job)
+        self.assertEqual(self.text.count("deploy-pages@"), 1)
+        self.assertEqual(self.text.count("upload-pages-artifact@"), 1)
 
     def test_the_push_token_is_the_runs_own_and_only_on_the_write_job(self):
         self.assertIn("PUBLISH_TOKEN: ${{ github.token }}", self.publish_job)

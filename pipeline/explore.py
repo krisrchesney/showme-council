@@ -318,7 +318,7 @@ def counts_block(counts, total):
 
 
 # ---------------------------------------------------------------------------------------------------------------- the pages
-def build_explorer(history_dir, out_dir, docs=None, metrics=None, labels=None, accuracy=None, built_at=None, load_history=None, trim=True):
+def build_explorer(history_dir, out_dir, docs=None, metrics=None, labels=None, accuracy=None, built_at=None, load_history=None, trim=True, scheduled=False):
     from pipeline.compare import load_history as _lh
     events, rows = (load_history or _lh)(history_dir)
     model = build_model(events, rows)
@@ -507,7 +507,7 @@ def build_explorer(history_dir, out_dir, docs=None, metrics=None, labels=None, a
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
 function run(){if(!data)return;var t=q.value.toLowerCase().split(/\\s+/).filter(Boolean);if(!t.length){out.innerHTML='<p class="muted">Type an item number (like 260445), a word from a title, or a topic.</p>';return}
 var hits=[];for(var i=0;i<data.length&&hits.length<60;i++){var d=data[i],s=(d[0]+' '+d[1]+' '+d[2]).toLowerCase();if(t.every(function(w){return s.indexOf(w)>-1}))hits.push(d)}
-out.innerHTML=hits.length?hits.map(function(d){return '<div class="row">'+(d[5]?'<a href="'+esc(d[5])+'"><b>'+esc(d[0])+'</b></a>'+(d[5].indexOf('http')===0?' <span class="muted">(city page)</span>':''):'<b>'+esc(d[0])+'</b>')+'<br>'+esc(d[1])+'<br><span class="muted">'+esc(d[4])+' &middot; '+esc(d[2]).replace(/\|/g,', ')+'</span></div>'}).join(''):'<p class="muted">Nothing matched.</p>'}
+out.innerHTML=hits.length?hits.map(function(d){return '<div class="row">'+(d[5]?'<a href="'+esc(d[5])+'"><b>'+esc(d[0])+'</b></a>'+(d[5].indexOf('http')===0?' <span class="muted">(city page)</span>':''):'<b>'+esc(d[0])+'</b>')+'<br>'+esc(d[1])+'<br><span class="muted">'+esc(d[4])+' &middot; '+esc(d[2]).split('|').join(', ')+'</span></div>'}).join(''):'<p class="muted">Nothing matched.</p>'}
 var p=new URLSearchParams(location.search).get('q');if(p)q.value=p;
 fetch('search.json').then(function(r){return r.json()}).then(function(j){data=j;run()}).catch(function(){out.innerHTML='<p class="muted">Search could not load.</p>'});
 q.addEventListener('input',run)})();
@@ -580,7 +580,7 @@ q.addEventListener('input',run)})();
     site.page("about.html", "How it works", (
         f"<h1>How this works, and how far to trust it</h1>"
         f"<h2>Where it comes from</h2><p>Every fact starts in the City of Kansas City's own records: the Legistar item data and the posted minutes and agenda PDFs. {DATA_CREDIT} "
-        f"A job reads them (run by hand for now; a nightly schedule is planned); a model drafts plain-language facts; a second model and code check each fact against the quote it came from. "
+        f"A job reads them ({'it runs every night' if scheduled else 'run by hand so far; a nightly schedule is planned'}); a model drafts plain-language facts; a second model and code check each fact against the quote it came from. "
         f"Only facts that pass are shown, and each links to the page of the official document.</p>"
         f"<h2>Two kinds of content</h2><p>{badge_code()} counts, dates, votes outcomes, how often an item was held, topics and links are computed by code from the city's data. "
         f"{badge_ai()} the meeting summaries and short item descriptions are written by a model and shown only after the checks above.</p>"
