@@ -62,9 +62,11 @@ class TopicRuleTests(unittest.TestCase):
         for title, want in self.CASES.items():
             self.assertEqual(topics.topic_of(title), want, title)
 
-    def test_order_matters_the_first_match_wins(self):
+    def test_the_keyword_that_comes_first_in_the_title_leads(self):
         self.assertEqual(topics.topic_of("Recognizing the Parks Department for its work"), "ceremonial")
-        self.assertEqual(topics.topic_of("Authorizing sewer revenue bonds"), "bonds_financing")
+        self.assertEqual(topics.topic_of("Authorizing sewer revenue bonds"), "streets_utilities")
+        self.assertEqual(topics.topic_of("Authorizing the issuance of bonds for sewer repairs"), "bonds_financing")
+        self.assertIn("bonds_financing", topics.topic_list("Authorizing sewer revenue bonds"))
 
     def test_a_sponsors_department_name_cannot_decide_the_topic(self):
         self.assertEqual(topics.topic_of("Sponsor: Director of Water Services Department Approving a pay plan"), "city_code")

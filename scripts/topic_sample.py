@@ -20,7 +20,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from pipeline import paths  # noqa: E402
 from pipeline.agents import run_agent  # noqa: E402
 from pipeline.compare import load_history  # noqa: E402
-from pipeline.topics import DESCRIPTIONS, TOPICS, topic_of  # noqa: E402
+from pipeline.topics import DESCRIPTIONS, TOPICS, topic_list, topic_of  # noqa: E402
 
 BATCH = 50
 TITLE_CHARS = 500
@@ -37,12 +37,13 @@ def distinct_council_matters(events, rows):
     return seen
 
 
-def build_sample(matters, n, seed):
+def build_sample(matters, n, seed, exclude=()):
     """About n/len(TOPICS) titles per rule topic (all of a small topic), so every rule and the 'other' bucket are tested."""
     rng = random.Random(seed)
     groups = {t: [] for t in TOPICS}
     for mf, title in sorted(matters.items()):
-        groups[topic_of(title)].append((mf, title))
+        if mf not in exclude:
+            groups[topic_of(title)].append((mf, title))
     per = max(1, n // len(TOPICS))
     sample = []
     for t in TOPICS:
@@ -64,17 +65,26 @@ def estimate_tokens(sample):
 
 def compare_tags(sample, tags):
     """Agreement between the rules and a model's tags: overall, and per rule topic."""
-    per, rows = {}, []
+    per, rows, main = {}, [], {}
     for i, (mf, title, rule) in enumerate(sample):
         model = tags.get(f"s{i}")
-        ok = model == rule
+        listed = topic_list(title)
+        ok = model in listed                      # the model's main topic is one of the rules' topics for the item
         p = per.setdefault(rule, {"n": 0, "agree": 0})
         p["n"] += 1
         p["agree"] += ok
-        rows.append({"id": f"s{i}", "matter_file": mf, "title": title, "rule": rule, "model": model, "agree": ok})
+        for t in listed:                          # for each topic the page would show: does the model call it the item's main topic?
+            m = main.setdefault(t, {"n": 0, "model_main": 0})
+            m["n"] += 1
+            m["model_main"] += (model == t)
+        rows.append({"id": f"s{i}", "matter_file": mf, "title": title, "rule": rule, "rules": listed, "model": model, "agree": ok,
+                     "primary_agree": model == rule})
     n = len(rows)
     return {"n": n, "agree": sum(r["agree"] for r in rows), "rate": round(sum(r["agree"] for r in rows) / n, 3) if n else None,
-            "per_rule_topic": {t: dict(v, rate=round(v["agree"] / v["n"], 3)) for t, v in per.items()}, "rows": rows}
+            "primary_agree": sum(r["primary_agree"] for r in rows),
+            "primary_rate": round(sum(r["primary_agree"] for r in rows) / n, 3) if n else None,
+            "per_rule_topic": {t: dict(v, rate=round(v["agree"] / v["n"], 3)) for t, v in per.items()},
+            "per_listed_topic": {t: dict(v, rate=round(v["model_main"] / v["n"], 3)) for t, v in main.items()}, "rows": rows}
 
 
 def weighted_rate(per_rule_topic, population):
@@ -108,10 +118,15 @@ def main(argv=None):
     ap.add_argument("--seed", type=int, default=7)
     ap.add_argument("--out", default=os.path.join("preview", "topic-sample.json"))
     ap.add_argument("--run", action="store_true", help="call the model (uses plan usage)")
+    ap.add_argument("--exclude-from", default="", help="a topic-sample.json whose matters are left out, so the sample is fresh")
     a = ap.parse_args(argv)
     events, rows = load_history(a.history)
     matters = distinct_council_matters(events, rows)
-    sample = build_sample(matters, a.n, a.seed)
+    exclude = set()
+    if a.exclude_from:
+        with open(a.exclude_from, encoding="utf-8") as f:
+            exclude = {r["matter_file"] for r in json.load(f)["rows"]}
+    sample = build_sample(matters, a.n, a.seed, exclude)
     est = estimate_tokens(sample)
     spread = {t: sum(1 for _, _, r in sample if r == t) for t in TOPICS}
     print(f"{len(matters)} distinct Council matters; sample of {len(sample)}; by rule topic: {spread}")
@@ -122,6 +137,8 @@ def main(argv=None):
     os.makedirs(os.path.dirname(a.out) or ".", exist_ok=True)
     res = run_sample(sample, os.path.join(os.path.dirname(a.out) or ".", "topic-sample-work"))
     population = {t: sum(1 for title in matters.values() if topic_of(title) == t) for t in TOPICS}
+    res["sample_seed"] = a.seed
+    res["fresh_of"] = a.exclude_from or None
     res["population"] = population
     res["weighted_rate"] = weighted_rate(res["per_rule_topic"], population)
     with open(a.out, "w", encoding="utf-8") as f:
