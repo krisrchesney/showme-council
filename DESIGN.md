@@ -158,7 +158,10 @@ works for anyone forking: set `ANTHROPIC_API_KEY` and `SHOWME_BARE=1`. `.github/
 **State between nights.** `data/state.json` (what's done or failed),
 `data/published/` and `data/metrics.jsonl` are the record and get committed.
 `data/raw/`, `data/work/` and `site/` are rebuilt each night and are gitignored.
-In Actions, the job commits the record back (T-1 decides main vs. a `data` branch).
+In Actions the record lives on a separate **`data` branch** (decided in T-1), so `master` stays code only. Each night
+starts by restoring that branch into the run's data folder (otherwise a fresh runner would know nothing, reprocess old
+documents and rebuild the site from tonight's alone), and the write-access job commits the result back with
+`scripts/publish_data.py`. The nightly fetches **minutes only** until the agenda guard exists (docs/AGENDA-VS-MINUTES.md).
 
 ## Usage per night
 
