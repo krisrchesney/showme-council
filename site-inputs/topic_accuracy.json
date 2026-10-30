@@ -1,0 +1,119 @@
+{
+ "n": 300,
+ "rate": 0.86,
+ "primary_rate": 0.683,
+ "per_topic": {
+  "ceremonial": {
+   "model_n": 29,
+   "found": 26,
+   "lead_n": 24,
+   "lead_agree": 23,
+   "found_rate": 0.897,
+   "lead_rate": 0.958
+  },
+  "land_use": {
+   "model_n": 41,
+   "found": 35,
+   "lead_n": 23,
+   "lead_agree": 23,
+   "found_rate": 0.854,
+   "lead_rate": 1.0
+  },
+  "boards_appointments": {
+   "model_n": 24,
+   "found": 23,
+   "lead_n": 23,
+   "lead_agree": 23,
+   "found_rate": 0.958,
+   "lead_rate": 1.0
+  },
+  "bonds_financing": {
+   "model_n": 50,
+   "found": 31,
+   "lead_n": 24,
+   "lead_agree": 24,
+   "found_rate": 0.62,
+   "lead_rate": 1.0
+  },
+  "grants": {
+   "model_n": 34,
+   "found": 34,
+   "lead_n": 23,
+   "lead_agree": 23,
+   "found_rate": 1.0,
+   "lead_rate": 1.0
+  },
+  "budget_funds": {
+   "model_n": 29,
+   "found": 24,
+   "lead_n": 25,
+   "lead_agree": 12,
+   "found_rate": 0.828,
+   "lead_rate": 0.48
+  },
+  "public_safety": {
+   "model_n": 7,
+   "found": 5,
+   "lead_n": 23,
+   "lead_agree": 5,
+   "found_rate": 0.714,
+   "lead_rate": 0.217
+  },
+  "contracts": {
+   "model_n": 26,
+   "found": 26,
+   "lead_n": 23,
+   "lead_agree": 22,
+   "found_rate": 1.0,
+   "lead_rate": 0.957
+  },
+  "streets_utilities": {
+   "model_n": 9,
+   "found": 9,
+   "lead_n": 23,
+   "lead_agree": 8,
+   "found_rate": 1.0,
+   "lead_rate": 0.348
+  },
+  "other": {
+   "model_n": 10,
+   "found": 8,
+   "lead_n": 24,
+   "lead_agree": 8,
+   "found_rate": 0.8,
+   "lead_rate": 0.333
+  },
+  "city_code": {
+   "model_n": 13,
+   "found": 10,
+   "lead_n": 24,
+   "lead_agree": 10,
+   "found_rate": 0.769,
+   "lead_rate": 0.417
+  },
+  "housing": {
+   "model_n": 23,
+   "found": 22,
+   "lead_n": 23,
+   "lead_agree": 19,
+   "found_rate": 0.957,
+   "lead_rate": 0.826
+  },
+  "parks_recreation": {
+   "model_n": 5,
+   "found": 5,
+   "lead_n": 18,
+   "lead_agree": 5,
+   "found_rate": 1.0,
+   "lead_rate": 0.278
+  }
+ },
+ "usage": {
+  "tokens_in": 68110,
+  "tokens_out": 9004,
+  "turns": 12,
+  "seconds": 73.3
+ },
+ "seed": 11,
+ "note": "Measured on a fresh 300-title sample (seed 11) that excluded the sample the rules were tuned on. See the site accuracy page."
+}
