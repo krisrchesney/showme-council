@@ -159,6 +159,24 @@ def clean_env():
     return env
 
 
+TOKEN_KINDS = ("input", "cacheRead", "cacheWrite", "output")
+
+
+def token_breakdown(usage):
+    """The four kinds of token in a Claude Code usage block: fresh input, cache read, cache write (cache creation), output."""
+    u = usage or {}
+    return {"input": int(u.get("input_tokens") or 0), "cacheRead": int(u.get("cache_read_input_tokens") or 0),
+            "cacheWrite": int(u.get("cache_creation_input_tokens") or 0), "output": int(u.get("output_tokens") or 0)}
+
+
+def add_breakdowns(parts):
+    """Sum token breakdowns. None if there are none or any is missing (an older record), so a total is never half a total."""
+    parts = list(parts)
+    if not parts or any(not p for p in parts):
+        return None
+    return {k: sum(p[k] for p in parts) for k in TOKEN_KINDS}
+
+
 class AgentOutputError(RuntimeError):
     """The agent ran but returned nothing that parses against its schema."""
 
@@ -183,7 +201,7 @@ def run_agent(name, schema, payload, out_dir, loop_cap, stub_dir=None, timeout=9
     os.makedirs(out_dir, exist_ok=True)
     if stub_dir:
         with open(os.path.join(stub_dir, f"{name}.json"), encoding="utf-8") as f:
-            return json.load(f), {"stub": True, "tokens_in": 0, "tokens_out": 0, "num_turns": 0,
+            return json.load(f), {"stub": True, "tokens_in": 0, "tokens_out": 0, "tokens": token_breakdown({}), "num_turns": 0,
                                   "duration_s": 0.0, "api_equiv_usd": 0.0, "models": []}
 
     agent = load_agent(name)
@@ -213,6 +231,7 @@ def run_agent(name, schema, payload, out_dir, loop_cap, stub_dir=None, timeout=9
         "tokens_in": (u.get("input_tokens") or 0) + (u.get("cache_creation_input_tokens") or 0)
                      + (u.get("cache_read_input_tokens") or 0),
         "tokens_out": u.get("output_tokens") or 0,
+        "tokens": token_breakdown(u),
         # Claude Code's estimate of what these tokens would cost at API rates. For comparing
         # models and runs only; on the subscription nothing is billed per token.
         "api_equiv_usd": resp.get("total_cost_usd") or 0.0,

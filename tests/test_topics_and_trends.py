@@ -211,7 +211,7 @@ class TopicSampleTests(unittest.TestCase):
         self.assertEqual(set(seen[0]["items"][0]), {"id", "title"})
         self.assertEqual(len(seen[0]["items"][0]["title"]), topic_sample.TITLE_CHARS)
         self.assertNotIn("ceremonial", json.dumps(seen[0]["items"]))
-        self.assertEqual(res["usage"], {"tokens_in": 100, "tokens_out": 10, "turns": 2, "seconds": 1.0})
+        self.assertEqual(res["usage"], {"tokens_in": 100, "tokens_out": 10, "tokens": None, "turns": 2, "seconds": 1.0})
 
     def test_without_run_no_model_is_called(self):
         d = tempfile.mkdtemp(prefix="showme-hist-")
