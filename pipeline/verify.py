@@ -22,6 +22,8 @@ Thresholds live here and nowhere else. Lowering one to raise the pass rate is th
 
 import re
 import unicodedata
+
+from pipeline import members
 from difflib import SequenceMatcher
 
 FUZZY_MIN = 0.92        # PDF text extraction mangles some spacing; below this it's a different passage
@@ -285,10 +287,13 @@ def code_checks(claim, pages, meta, api_items):
         reasons.append("api_disagrees")
     if agenda_states_outcome(claim, meta):
         reasons.append("agenda_states_outcome")
+    member_ok, member_why = members.check_text(claim.get("statement", ""), api_items, [claim.get("matter_file")])
+    if not member_ok:
+        reasons.append("member_named")
     return {
         "quote_match": match, "quote_score": score, "quote_page": page,
         "numbers_missing_from_quote": missing, "matter": matter, "api": api,
-        "passed": not reasons, "reasons": reasons,
+        "passed": not reasons, "reasons": reasons, "member_check": member_why,
     }
 
 
@@ -311,8 +316,11 @@ def coverage(meta, api_items, accepted):
             "rate": round((len(voted) - len(missing)) / len(voted), 3), "missing": missing}
 
 
-def decide(meta, claims, checks, summary, verdicts):
-    """Combine code checks + fact-checker verdicts into what gets published, plus the metric."""
+def decide(meta, claims, checks, summary, verdicts, api_items=None):
+    """Combine code checks + fact-checker verdicts into what gets published, plus the metric.
+    `api_items` carries the roll calls: a sentence or headline that names a council member is published only if it is a
+    recorded-vote statement the roll call confirms (pipeline/members.py)."""
+    claim_matter = {c["id"]: c.get("matter_file") for c in claims}
     by_id = {v["id"]: v for v in verdicts.get("claims", [])}
     accepted, rejected = [], []
     reasons_count = {}
@@ -339,14 +347,19 @@ def decide(meta, claims, checks, summary, verdicts):
         v = sv.get(i)
         good = (v is not None and v["verdict"] == "FAITHFUL"
                 and s.get("claim_ids") and all(cid in ok_ids for cid in s["claim_ids"]))
-        (published if good else dropped).append(dict(s, index=i, checker=v))
+        member_ok, member_why = members.check_text(s.get("text", ""), api_items, [claim_matter.get(cid) for cid in s.get("claim_ids", [])])
+        named = bool(members.mentions(s.get("text", ""), members.full_roster(api_items)))
+        (published if good and member_ok else dropped).append(
+            dict(s, index=i, checker=v, **({"members_verified": True} if named and member_ok else {}),
+                 **({} if member_ok else {"dropped_because": member_why})))
 
     # The headline is checked as one extra sentence citing every claim the summary used.
     hv = sv.get(len(sentences))
     # The headline may restate any claim the summary used, so every one of them must have been accepted.
     # (T-10 gives the headline its own claim list so one rejected fact doesn't cost the whole headline.)
     cited = {cid for s in sentences for cid in s.get("claim_ids", [])}
-    headline_ok = hv is not None and hv["verdict"] == "FAITHFUL" and bool(published) and cited <= ok_ids
+    headline_ok = (hv is not None and hv["verdict"] == "FAITHFUL" and bool(published) and cited <= ok_ids
+                   and not members.mentions(summary.get("headline", ""), members.full_roster(api_items)))
     headline = summary.get("headline") if headline_ok else (
         f"{meta['body']} {meta['kind']}, {meta['date']}")
 

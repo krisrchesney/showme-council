@@ -16,6 +16,7 @@ import os
 import re
 import statistics
 
+from pipeline import members
 from pipeline.compare import action_kind, build_index, classify_meeting
 from pipeline.topics import DESCRIPTIONS, NAMES, TOPICS, short_title, topic_list
 
@@ -104,6 +105,17 @@ def slug(topic):
 
 
 OPEN_WIDE = "<script>if(window.matchMedia&&matchMedia('(min-width:900px)').matches){document.querySelectorAll('details.facts').forEach(function(d){d.open=true})}</script>"
+
+
+def member_safe(d):
+    """A second line of defence for published summaries: a sentence or fact that names a council member is shown only if the run that
+    wrote it verified it against the roll call (pipeline/members.py marked it). Anything older or unmarked is left out."""
+    names = members.full_roster()
+    claims = [c for c in d["claims"] if not members.mentions(c.get("statement", ""), names) or "member_check" in (c.get("code_checks") or {})]
+    keep = {c["id"] for c in claims}
+    sentences = [x for x in d["sentences"] if not members.mentions(x.get("text", ""), names) or x.get("members_verified")]
+    sentences = [dict(x, claim_ids=[c for c in x["claim_ids"] if c in keep]) for x in sentences]
+    return dict(d, claims=claims, sentences=sentences)
 
 
 class Site:
@@ -329,7 +341,7 @@ def build_explorer(history_dir, out_dir, docs=None, metrics=None, labels=None, a
     built_at = built_at or datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
     site = Site(built_at, records_through)
     doc_by_event = {}
-    for d in docs:
+    for d in [member_safe(x) for x in docs]:
         mm = re.match(r"kc-(\d+)-", d["meta"]["doc_id"])
         if mm:
             doc_by_event[int(mm.group(1))] = d
