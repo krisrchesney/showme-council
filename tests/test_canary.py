@@ -63,9 +63,14 @@ class BuildingCanaryTests(TempDataTest):
 
     def test_the_other_kinds_pass_every_code_check_so_only_the_checker_can_catch_them(self):
         for f in self.fakes:
-            if self.info[f["id"]]["type"] != "flip_outcome":
+            if self.info[f["id"]]["type"] not in ("flip_outcome", "swap_name"):
                 ck = code_checks(f, self.pages, META, self.items)
                 self.assertTrue(ck["passed"], (f["statement"], ck["reasons"]))
+
+    def test_a_swapped_name_is_now_also_caught_by_code_because_the_roll_call_contradicts_it(self):
+        f = next(f for f in self.fakes if self.info[f["id"]]["type"] == "swap_name")
+        ck = code_checks(f, self.pages, META, self.items)
+        self.assertIn("member_named", ck["reasons"])
 
     def test_overstate_only_for_a_vote_the_roll_call_shows_had_a_nay(self):
         f = next(f for f in self.fakes if self.info[f["id"]]["type"] == "overstate")
@@ -161,7 +166,7 @@ class CanariesInTheRunTests(TempDataTest):
         self.assertNotIn("missed_by_checker", lenient["canary"])
         strict, _ = self.run_with("strict")
         self.assertEqual((strict["canary"]["checker_caught"], strict["canary"]["total"]), (4, 4))
-        self.assertEqual(strict["canary"]["code_caught"], 1)      # only the flipped outcome contradicts the city record
+        self.assertEqual(strict["canary"]["code_caught"], 2)      # the flipped outcome and the swapped name both contradict the city record
 
     def test_stub_runs_have_no_canaries(self):
         from tests.helpers import STUB

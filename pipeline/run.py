@@ -235,7 +235,7 @@ def process(doc_id, stub_dir=None, loop_cap=1.50, model=None, canaries=True):
     # Coverage stop (default model only, never for canned stub output): publishing a page that covers
     # a sliver of the meeting is worse than stopping and asking. The agents' files stay in data/work.
     if not stub_dir and not strong:
-        cov = coverage(meta, api_items, decide(meta, claims, checks, summary, verdicts)["accepted"])
+        cov = coverage(meta, api_items, decide(meta, claims, checks, summary, verdicts, api_items)["accepted"])
         if cov and cov["voted"] >= COVERAGE_MIN_ITEMS and cov["rate"] < COVERAGE_MIN:
             raise NeedsStrongerModel(f"only {cov['covered']} of {cov['voted']} voted items covered by an accepted fact "
                                      f"({round(100 * cov['rate'])}%, under the {round(100 * COVERAGE_MIN)}% floor)")
@@ -253,8 +253,8 @@ def process(doc_id, stub_dir=None, loop_cap=1.50, model=None, canaries=True):
 def finalize(doc_id, meta, claims, checks, summary, verdicts, usage_meta):
     """decide() + write report, published JSON and the metrics line. Free; no model calls."""
     wd = paths.work_dir(doc_id)
-    result = decide(meta, claims, checks, summary, verdicts)
     _, _, api_items = read_raw(doc_id)
+    result = decide(meta, claims, checks, summary, verdicts, api_items)
     report = dict(result["report"], coverage=coverage(meta, api_items, result["accepted"]), **usage_meta)
     _dump(os.path.join(wd, "report.json"), dict(result, report=report))
     _dump(os.path.join(paths.PUBLISHED, f"{doc_id}.json"), {

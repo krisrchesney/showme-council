@@ -1,0 +1,18 @@
+{
+ "note": "Council member names as the city's roll calls spell them. Used to keep model-written text from naming a member outside a roll-call-verified vote statement (pipeline/members.py). The nightly adds any new names it sees in a roll call.",
+ "names": [
+  "Quinton Lucas",
+  "Kevin O'Neill",
+  "Nathan Willett",
+  "Lindsay French",
+  "Wes Rogers",
+  "Melissa Patterson Hazley",
+  "Melissa Robinson",
+  "Crispin Rea",
+  "Eric Bunch",
+  "Darrell Curls",
+  "Ryana Parks-Shaw",
+  "Kevin McManus",
+  "Johnathan Duncan"
+ ]
+}

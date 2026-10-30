@@ -18,6 +18,10 @@ with open(glob.glob(os.path.join(FIX, "*Minutes.txt"))[0], encoding="utf-8") as 
     PAGES = split_pages(_f.read())
 with open(os.path.join(FIX, "eventitems_19561.json"), encoding="utf-8") as _f:
     ITEMS = json.load(_f)
+with open(os.path.join(FIX, "votes.json"), encoding="utf-8") as _f:      # roll calls, attached the way ingest attaches them
+    _VOTES = json.load(_f)
+for _it in ITEMS:
+    _it["votes"] = [{"name": v["VotePersonName"], "vote": v["VoteValueName"]} for v in _VOTES.get(str(_it["EventItemId"]), [])]
 
 
 def score(run):
@@ -26,7 +30,7 @@ def score(run):
             return json.load(f)
     claims = load("facts")["claims"]
     checks = {c["id"]: code_checks(c, PAGES, META, ITEMS) for c in claims}
-    res = decide(META, claims, checks, load("summary"), load("verdicts"))
+    res = decide(META, claims, checks, load("summary"), load("verdicts"), ITEMS)
     return res, coverage(META, ITEMS, res["accepted"])
 
 
