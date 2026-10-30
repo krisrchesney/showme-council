@@ -139,6 +139,9 @@ class TwoJobSplitTests(unittest.TestCase):
             self.assertNotIn(bad, self.build_job, bad)
         self.assertIn("persist-credentials: false", self.build_job)
 
+    def test_the_build_installs_the_requirements_before_it_imports_the_pipeline(self):
+        self.assertLess(self.build_job.index("pip install -r requirements.txt"), self.build_job.index("backfill_rows.py"))
+
     def test_the_build_scans_for_private_text_before_it_uploads_the_site(self):
         self.assertLess(self.build_job.index("scan_site.py"), self.build_job.index("upload-pages-artifact"))
         self.assertIn("--accuracy site-inputs/topic_accuracy.json", self.build_job)
