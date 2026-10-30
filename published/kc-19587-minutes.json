@@ -1,0 +1,673 @@
+{
+  "meta": {
+    "doc_id": "kc-19587-minutes",
+    "source": "kansascity",
+    "body": "Council",
+    "date": "2026-10-29",
+    "kind": "minutes",
+    "pdf_url": "https://kansascity.legistar1.com/kansascity/meetings/2026/10/19587_M_Council_26-10-29_Meeting_Minutes.pdf",
+    "detail_url": "https://kansascity.legistar.com/MeetingDetail.aspx?LEGID=19587&GID=821&G=D2E89A09-8736-4EFB-B4AE-572E0903BD5A",
+    "extra": {
+      "event_id": 19587
+    }
+  },
+  "headline": "Council minutes, 2026-10-29",
+  "generated_at": "2026-10-30T18:44:47+00:00",
+  "sentences": [
+    {
+      "text": "At its October 29, 2026 meeting, the council passed Ordinance 260931, which appropriates $1,000,000.00 for a replacement playground at Barry Road Park.",
+      "claim_ids": [
+        "c15",
+        "c16"
+      ]
+    },
+    {
+      "text": "The council passed Ordinance 260917 amending the Bike Share KC contract for a total of $569,000.00.",
+      "claim_ids": [
+        "c9",
+        "c10"
+      ]
+    },
+    {
+      "text": "It passed Ordinance 260901, which authorizes a three-year $6,510,398.00 contract with VMD Systems Integrators, LLC.",
+      "claim_ids": [
+        "c18",
+        "c19"
+      ]
+    },
+    {
+      "text": "The council passed Ordinance 260935, which approves $1,449,048.68 for a water utility betterment.",
+      "claim_ids": [
+        "c22",
+        "c23"
+      ]
+    },
+    {
+      "text": "Ordinance 260941, which authorizes taxable industrial revenue bonds not to exceed $572,500,000.00, was held on docket for 2 weeks.",
+      "claim_ids": [
+        "c13",
+        "c14"
+      ]
+    },
+    {
+      "text": "Several items were referred to committees, including Ordinance 260956, which would appropriate $2,000,000.00 to the Streetcar Main Street Extension project, and Ordinance 260954, which would accept a $49,000.00 grant award from the Missouri Department of Conservation.",
+      "claim_ids": [
+        "c37",
+        "c38",
+        "c33",
+        "c34"
+      ]
+    }
+  ],
+  "claims": [
+    {
+      "id": "c2",
+      "type": "vote",
+      "statement": "Special Action 260952 congratulating the Northlanders soccer team was adopted.",
+      "quote": "A motion was made that this Special Action be Adopted.. The motion carried by \nthe following vote:",
+      "page": 2,
+      "matter_file": "260952",
+      "outcome": "adopted",
+      "amount_usd": null,
+      "code_checks": {
+        "api": "agree",
+        "quote_match": "exact"
+      }
+    },
+    {
+      "id": "c3",
+      "type": "vote",
+      "statement": "Resolution 260943 adopting the 2026 Update of the Citywide Business Plan was adopted as amended.",
+      "quote": "A motion was made that this Resolution be adopted as amended.. The motion \ncarried by the following vote:",
+      "page": 3,
+      "matter_file": "260943",
+      "outcome": "adopted",
+      "amount_usd": null,
+      "code_checks": {
+        "api": "agree",
+        "quote_match": "exact"
+      }
+    },
+    {
+      "id": "c4",
+      "type": "vote",
+      "statement": "Ordinance 260898 terminating the 19th Terrace & Central TIF Plan was passed, with Parks-Shaw voting Nay and Robinson abstaining.",
+      "quote": "A motion was made that this Ordinance be Passed.. The motion carried by the \nfollowing vote:\nLucas, O'Neill, Willett, French, Patterson Hazley, Rea, Bunch, Curls, \nMcManus, and Duncan\nAye:\nParks-ShawNay:\nRobinsonAbstain:",
+      "page": 4,
+      "matter_file": "260898",
+      "outcome": "passed",
+      "amount_usd": null,
+      "code_checks": {
+        "api": "agree",
+        "quote_match": "exact"
+      }
+    },
+    {
+      "id": "c5",
+      "type": "vote",
+      "statement": "Ordinance 260899 terminating the Prospect North TIF Plan was passed, with Parks-Shaw voting Nay and Robinson abstaining.",
+      "quote": "A motion was made that this Ordinance be Passed.. The motion carried by the \nfollowing vote:\nLucas, O'Neill, Willett, French, Patterson Hazley, Rea, Bunch, Curls, \nMcManus, and Duncan\nAye:\nParks-ShawNay:\nRobinsonAbstain:",
+      "page": 5,
+      "matter_file": "260899",
+      "outcome": "passed",
+      "amount_usd": null,
+      "code_checks": {
+        "api": "agree",
+        "quote_match": "exact"
+      }
+    },
+    {
+      "id": "c6",
+      "type": "vote",
+      "statement": "Ordinance 260937 approving the Sixth Amendment to the Antioch Mall TIF Plan was passed, with Parks-Shaw voting Nay and Robinson abstaining.",
+      "quote": "Approving the Sixth Amendment to the Antioch Mall Tax Increment Financing Plan.",
+      "page": 5,
+      "matter_file": "260937",
+      "outcome": "passed",
+      "amount_usd": null,
+      "code_checks": {
+        "api": "agree",
+        "quote_match": "exact"
+      }
+    },
+    {
+      "id": "c7",
+      "type": "vote",
+      "statement": "Ordinance 260930 approving the plat of Darby Townhomes was passed.",
+      "quote": "A motion was made that this Ordinance be Passed.. The motion carried by the \nfollowing vote:\nLucas, O'Neill, Willett, French, Patterson Hazley, Rea, Bunch, Curls, \nMcManus, and Duncan\nAye:\nParks-ShawNay:",
+      "page": 6,
+      "matter_file": "260930",
+      "outcome": "passed",
+      "amount_usd": null,
+      "code_checks": {
+        "api": "agree",
+        "quote_match": "exact"
+      }
+    },
+    {
+      "id": "c8",
+      "type": "vote",
+      "statement": "Ordinance 260900 detaching property from the City was passed.",
+      "quote": "FINANCE COMMITTEE recommends “Advance and Do Pass, Debate.”\n260900",
+      "page": 7,
+      "matter_file": "260900",
+      "outcome": "passed",
+      "amount_usd": null,
+      "code_checks": {
+        "api": "agree",
+        "quote_match": "exact"
+      }
+    },
+    {
+      "id": "c9",
+      "type": "vote",
+      "statement": "Ordinance 260917 amending the Bike Share KC contract was passed.",
+      "quote": "FINANCE COMMITTEE recommends “Advance and Do Pass, Debate.”\n260917",
+      "page": 7,
+      "matter_file": "260917",
+      "outcome": "passed",
+      "amount_usd": null,
+      "code_checks": {
+        "api": "agree",
+        "quote_match": "exact"
+      }
+    },
+    {
+      "id": "c10",
+      "type": "spending",
+      "statement": "Ordinance 260917 amends the Bike Share KC contract for a total of $569,000.00 .",
+      "quote": "for a total contract amount of $ 569,000.00 for the purpose of maintaining existing service levels",
+      "page": 7,
+      "matter_file": "260917",
+      "outcome": null,
+      "amount_usd": 569000,
+      "code_checks": {
+        "api": "unchecked",
+        "quote_match": "exact"
+      }
+    },
+    {
+      "id": "c11",
+      "type": "vote",
+      "statement": "Ordinance 260939 cancelling certain committee and council sessions was passed as substituted.",
+      "quote": "A motion was made that this Ordinance be Passed as Substituted.. The motion \ncarried by the following vote:",
+      "page": 8,
+      "matter_file": "260939",
+      "outcome": "passed",
+      "amount_usd": null,
+      "code_checks": {
+        "api": "agree",
+        "quote_match": "exact"
+      }
+    },
+    {
+      "id": "c12",
+      "type": "vote",
+      "statement": "Ordinance 260940 on the Denali III, LLC Amended Industrial Development Plan was held on docket for 1 week.",
+      "quote": "Held on Docket 10.29.2026 for 1 week",
+      "page": 8,
+      "matter_file": "260940",
+      "outcome": "held",
+      "amount_usd": null,
+      "code_checks": {
+        "api": "agree",
+        "quote_match": "exact"
+      }
+    },
+    {
+      "id": "c13",
+      "type": "vote",
+      "statement": "Ordinance 260941 for The Constant Company, LLC Industrial Development Plan was held on docket for 2 weeks.",
+      "quote": "Held on Docket 10.29.2026 for 2 weeks",
+      "page": 9,
+      "matter_file": "260941",
+      "outcome": "held",
+      "amount_usd": null,
+      "code_checks": {
+        "api": "agree",
+        "quote_match": "exact"
+      }
+    },
+    {
+      "id": "c14",
+      "type": "spending",
+      "statement": "Ordinance 260941 authorizes taxable industrial revenue bonds not to exceed $572,500,000.00.",
+      "quote": "authorizing the issuance of taxable industrial revenue bonds in an amount not to exceed $ 572,500,000.00",
+      "page": 9,
+      "matter_file": "260941",
+      "outcome": null,
+      "amount_usd": 572500000,
+      "code_checks": {
+        "api": "unchecked",
+        "quote_match": "exact"
+      }
+    },
+    {
+      "id": "c15",
+      "type": "vote",
+      "statement": "Ordinance 260931 appropriating money for a Barry Road Park playground was passed.",
+      "quote": "NEIGHBORHOOD COMMITTEE recommends “Advance and Do Pass, Debate.”\n260931",
+      "page": 9,
+      "matter_file": "260931",
+      "outcome": "passed",
+      "amount_usd": null,
+      "code_checks": {
+        "api": "agree",
+        "quote_match": "exact"
+      }
+    },
+    {
+      "id": "c16",
+      "type": "spending",
+      "statement": "Ordinance 260931 appropriates $1,000,000.00 for a replacement playground at Barry Road Park.",
+      "quote": "Appropriating $1,000,000.00 from the Dog Park CD2 GO Bond project account",
+      "page": 9,
+      "matter_file": "260931",
+      "outcome": null,
+      "amount_usd": 1000000,
+      "code_checks": {
+        "api": "unchecked",
+        "quote_match": "exact"
+      }
+    },
+    {
+      "id": "c17",
+      "type": "vote",
+      "statement": "Ordinance 260938 amending a development plan was passed.",
+      "quote": "NEIGHBORHOOD COMMITTEE recommends “Advance and Do Pass, Debate.”\n260938",
+      "page": 10,
+      "matter_file": "260938",
+      "outcome": "passed",
+      "amount_usd": null,
+      "code_checks": {
+        "api": "agree",
+        "quote_match": "exact"
+      }
+    },
+    {
+      "id": "c18",
+      "type": "vote",
+      "statement": "Ordinance 260901 for Aviation Worker screening was passed.",
+      "quote": "TRANSPORTATION COMMITTEE recommends “Advance and Do Pass, Debate.”\n260901",
+      "page": 10,
+      "matter_file": "260901",
+      "outcome": "passed",
+      "amount_usd": null,
+      "code_checks": {
+        "api": "agree",
+        "quote_match": "exact"
+      }
+    },
+    {
+      "id": "c19",
+      "type": "spending",
+      "statement": "Ordinance 260901 authorizes a three-year $6,510,398.00 contract with VMD Systems Integrators, LLC.",
+      "quote": "a three (3) year $6,510,398.00 \ncontract with VMD Systems Integrators, LLC",
+      "page": 10,
+      "matter_file": "260901",
+      "outcome": null,
+      "amount_usd": 6510398,
+      "code_checks": {
+        "api": "unchecked",
+        "quote_match": "exact"
+      }
+    },
+    {
+      "id": "c20",
+      "type": "vote",
+      "statement": "Ordinance 260934 for the Burns & McDonnell contract amendment was passed.",
+      "quote": "TRANSPORTATION COMMITTEE recommends “Advance and Do Pass, Debate.”\n260934",
+      "page": 11,
+      "matter_file": "260934",
+      "outcome": "passed",
+      "amount_usd": null,
+      "code_checks": {
+        "api": "agree",
+        "quote_match": "exact"
+      }
+    },
+    {
+      "id": "c22",
+      "type": "vote",
+      "statement": "Ordinance 260935 for water utility betterment funds was passed.",
+      "quote": "TRANSPORTATION COMMITTEE recommends “Advance and Do Pass, Debate.”\n260935",
+      "page": 11,
+      "matter_file": "260935",
+      "outcome": "passed",
+      "amount_usd": null,
+      "code_checks": {
+        "api": "agree",
+        "quote_match": "exact"
+      }
+    },
+    {
+      "id": "c23",
+      "type": "spending",
+      "statement": "Ordinance 260935 approves funds of $1,449,048.68 for a water utility betterment.",
+      "quote": "Approving funds in the amount of $1,449,048.68",
+      "page": 11,
+      "matter_file": "260935",
+      "outcome": null,
+      "amount_usd": 1449048.68,
+      "code_checks": {
+        "api": "unchecked",
+        "quote_match": "exact"
+      }
+    },
+    {
+      "id": "c24",
+      "type": "vote",
+      "statement": "Ordinance 260936 for the M Con, LLC contract was passed.",
+      "quote": "TRANSPORTATION COMMITTEE recommends “Advance and Do Pass, Debate.”\n260936",
+      "page": 12,
+      "matter_file": "260936",
+      "outcome": "passed",
+      "amount_usd": null,
+      "code_checks": {
+        "api": "agree",
+        "quote_match": "exact"
+      }
+    },
+    {
+      "id": "c25",
+      "type": "spending",
+      "statement": "Ordinance 260936 includes Phase I Preconstruction Services of $280,000.00.",
+      "quote": "Phase I \nPreconstruction Services in the amount of $ 280,000.00",
+      "page": 12,
+      "matter_file": "260936",
+      "outcome": null,
+      "amount_usd": 280000,
+      "code_checks": {
+        "api": "unchecked",
+        "quote_match": "exact"
+      }
+    },
+    {
+      "id": "c26",
+      "type": "vote",
+      "statement": "Ordinance 260944 for the M-B Companies Inc. contract was passed.",
+      "quote": "TRANSPORTATION COMMITTEE recommends “Advance and Do Pass, Debate.”\n260944",
+      "page": 12,
+      "matter_file": "260944",
+      "outcome": "passed",
+      "amount_usd": null,
+      "code_checks": {
+        "api": "agree",
+        "quote_match": "exact"
+      }
+    },
+    {
+      "id": "c27",
+      "type": "vote",
+      "statement": "Ordinance 260951 on a Port Authority loan amendment was referred to the Finance, Governance and Public Safety Committee.",
+      "quote": "referredto the Finance, Governance and Public Safety Committee due back on \n11/3/2026",
+      "page": 13,
+      "matter_file": "260951",
+      "outcome": "referred",
+      "amount_usd": null,
+      "code_checks": {
+        "api": "agree",
+        "quote_match": "exact"
+      }
+    },
+    {
+      "id": "c29",
+      "type": "vote",
+      "statement": "Ordinance 260953 on the Pioneer Plaza TIF Plan amendment was referred to committee.",
+      "quote": "Approving the First Amendment to the Pioneer Plaza Tax Increment Financing Plan.",
+      "page": 13,
+      "matter_file": "260953",
+      "outcome": "referred",
+      "amount_usd": null,
+      "code_checks": {
+        "api": "agree",
+        "quote_match": "exact"
+      }
+    },
+    {
+      "id": "c30",
+      "type": "vote",
+      "statement": "Ordinance 260955 for the SpryPoint Services contract was referred to the Finance, Governance and Public Safety Committee.",
+      "quote": "20261006\nreferredto the Finance, Governance and Public Safety Committee due back on \n11/3/2026",
+      "page": 14,
+      "matter_file": "260955",
+      "outcome": "referred",
+      "amount_usd": null,
+      "code_checks": {
+        "api": "agree",
+        "quote_match": "exact"
+      }
+    },
+    {
+      "id": "c32",
+      "type": "vote",
+      "statement": "Resolution 260960 on the Convention Center Vision Plan was referred to the Finance, Governance and Public Safety Committee.",
+      "quote": "LucasSponsors:\nreferredto the Finance, Governance and Public Safety Committee due back on \n11/3/2026",
+      "page": 14,
+      "matter_file": "260960",
+      "outcome": "referred",
+      "amount_usd": null,
+      "code_checks": {
+        "api": "agree",
+        "quote_match": "exact"
+      }
+    },
+    {
+      "id": "c33",
+      "type": "vote",
+      "statement": "Ordinance 260954 on a Missouri Department of Conservation grant was referred to the Neighborhood Planning and Development Committee.",
+      "quote": "referredto the Neighborhood Planning and Development Committee due back on \n11/3/2026",
+      "page": 15,
+      "matter_file": "260954",
+      "outcome": "referred",
+      "amount_usd": null,
+      "code_checks": {
+        "api": "agree",
+        "quote_match": "exact"
+      }
+    },
+    {
+      "id": "c34",
+      "type": "spending",
+      "statement": "Ordinance 260954 would accept a $49,000.00 grant award from the Missouri Department of Conservation.",
+      "quote": "Accepting and approving a $ 49,000.00 grant award from the Missouri Department of Conservation",
+      "page": 15,
+      "matter_file": "260954",
+      "outcome": null,
+      "amount_usd": 49000,
+      "code_checks": {
+        "api": "unchecked",
+        "quote_match": "exact"
+      }
+    },
+    {
+      "id": "c36",
+      "type": "vote",
+      "statement": "Resolution 260958 amending the Heart of the City Area Plan was referred to the Neighborhood Planning and Development Committee.",
+      "quote": "CD-CPC-2026-00126_Staff Report\nreferredto the Neighborhood Planning and Development Committee due back on \n11/3/2026",
+      "page": 16,
+      "matter_file": "260958",
+      "outcome": "referred",
+      "amount_usd": null,
+      "code_checks": {
+        "api": "agree",
+        "quote_match": "exact"
+      }
+    },
+    {
+      "id": "c37",
+      "type": "vote",
+      "statement": "Ordinance 260956 on the Streetcar Main Street Extension was referred to the Transportation, Infrastructure and Operations Committee.",
+      "quote": "referredto the Transportation, Infrastructure and Operations Committee due back \non 11/3/2026",
+      "page": 16,
+      "matter_file": "260956",
+      "outcome": "referred",
+      "amount_usd": null,
+      "code_checks": {
+        "api": "agree",
+        "quote_match": "exact"
+      }
+    },
+    {
+      "id": "c38",
+      "type": "spending",
+      "statement": "Ordinance 260956 would appropriate $2,000,000.00 to the Streetcar Main Street Extension project.",
+      "quote": "Appropriating $2,000,000.00 from the Unappropriated Fund Balance of the Streetcar Fund",
+      "page": 16,
+      "matter_file": "260956",
+      "outcome": "referred",
+      "amount_usd": 2000000,
+      "code_checks": {
+        "api": "agree",
+        "quote_match": "exact"
+      }
+    },
+    {
+      "id": "c39",
+      "type": "vote",
+      "statement": "Resolution 260961 honoring Division Chief Tara Hill was adopted.",
+      "quote": "Move To Introduce\nThis matter was Adopted",
+      "page": 16,
+      "matter_file": "260961",
+      "outcome": "adopted",
+      "amount_usd": null,
+      "code_checks": {
+        "api": "agree",
+        "quote_match": "exact"
+      }
+    },
+    {
+      "id": "c40",
+      "type": "vote",
+      "statement": "Ordinance 260962 rezoning land at N.E. 104th Street and N.E. Cookingham Drive was referred to the Neighborhood Planning and Development Committee.",
+      "quote": "Move To Introduce\nreferredto the Neighborhood Planning and Development Committee due back on \n11/3/2026",
+      "page": 17,
+      "matter_file": "260962",
+      "outcome": "referred",
+      "amount_usd": null,
+      "code_checks": {
+        "api": "agree",
+        "quote_match": "exact"
+      }
+    }
+  ],
+  "report": {
+    "doc_id": "kc-19587-minutes",
+    "claims_extracted": 40,
+    "claims_accepted": 35,
+    "claims_rejected": 5,
+    "claim_pass_rate": 0.875,
+    "reject_reasons": {
+      "number_not_in_quote": 5
+    },
+    "code_vs_checker": {
+      "compared": 40,
+      "agree": 35
+    },
+    "sentences_written": 8,
+    "sentences_published": 6,
+    "sentence_pass_rate": 0.75,
+    "headline_checked": false,
+    "coverage": {
+      "voted": 18,
+      "covered": 17,
+      "rate": 0.944,
+      "missing": [
+        "260950"
+      ]
+    },
+    "at": "2026-10-30T18:44:47+00:00",
+    "stub": false,
+    "auth": "subscription",
+    "usage": {
+      "tokens_in": 55366,
+      "tokens_out": 9109,
+      "turns": 6,
+      "seconds": 50.7,
+      "tokens": {
+        "input": 6,
+        "cacheRead": 21458,
+        "cacheWrite": 33902,
+        "output": 9109
+      },
+      "api_equiv_usd": 0.2289,
+      "by_stage": {
+        "extractor": {
+          "tokens_in": 19090,
+          "tokens_out": 5655,
+          "tokens": {
+            "input": 2,
+            "cacheRead": 19088,
+            "cacheWrite": 0,
+            "output": 5655
+          },
+          "turns": 2,
+          "seconds": 27.4,
+          "api_equiv_usd": 0.0584628,
+          "models": [
+            "claude-sonnet-5-5"
+          ]
+        },
+        "summarizer": {
+          "tokens_in": 8372,
+          "tokens_out": 717,
+          "tokens": {
+            "input": 2,
+            "cacheRead": 1006,
+            "cacheWrite": 7364,
+            "output": 717
+          },
+          "turns": 2,
+          "seconds": 5.9,
+          "api_equiv_usd": 0.0367306,
+          "models": [
+            "claude-sonnet-5-5"
+          ]
+        },
+        "fact-checker": {
+          "tokens_in": 27904,
+          "tokens_out": 2737,
+          "tokens": {
+            "input": 2,
+            "cacheRead": 1364,
+            "cacheWrite": 26538,
+            "output": 2737
+          },
+          "turns": 2,
+          "seconds": 17.4,
+          "api_equiv_usd": 0.1336624,
+          "models": [
+            "claude-sonnet-5-5"
+          ]
+        }
+      }
+    },
+    "models": [
+      "claude-sonnet-5-5"
+    ],
+    "canary": {
+      "total": 4,
+      "checker_caught": 4,
+      "code_caught": 2,
+      "caught_by_either": 4,
+      "by_type": {
+        "flip_outcome": {
+          "total": 1,
+          "checker_caught": 1
+        },
+        "overstate": {
+          "total": 1,
+          "checker_caught": 1
+        },
+        "swap_name": {
+          "total": 1,
+          "checker_caught": 1
+        },
+        "swap_body": {
+          "total": 1,
+          "checker_caught": 1
+        }
+      }
+    }
+  }
+}
