@@ -35,7 +35,8 @@ class WorkflowSafetyTests(unittest.TestCase):
         crons = [ln.strip() for ln in active_lines(on) if "cron:" in ln]
         self.assertLessEqual(len(crons), 1)
         for c in crons:
-            self.assertEqual(c.split("#")[0].strip(), 'cron: "30 7 * * *"')
+            # The YAML list item reads `- cron: "..."`; compare the cron itself, exactly.
+            self.assertEqual(c.split("#")[0].strip().removeprefix("- ").strip(), 'cron: "30 7 * * *"')
 
     def test_permissions_are_read_only(self):
         block = self.text.split("\npermissions:\n", 1)[1].split("\n\n", 1)[0].strip().splitlines()

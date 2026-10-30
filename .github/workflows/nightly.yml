@@ -53,9 +53,8 @@ on:
         description: "nightly mode with dry_run off: commit results to the data branch and deploy the site. Needs the user's OK."
         type: boolean
         default: false
-  # The schedule goes in only after the user's one updated run is verified:
-  # schedule:
-  #   - cron: "30 7 * * *"   # 07:30 UTC = 2:30 AM CDT
+  schedule:
+    - cron: "30 7 * * *"   # 07:30 UTC = 2:30 AM CDT
 
 permissions:
   contents: read
