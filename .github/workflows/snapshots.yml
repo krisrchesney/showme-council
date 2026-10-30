@@ -1,0 +1,48 @@
+# Save upcoming agendas before the city revises them (T-20). No model, no secrets, nothing published.
+#
+# The city keeps one agenda version per meeting and republishes it as "Final-Revised" around and after the meeting, so for a
+# past meeting the original plan is gone. This keeps every version, on its own `snapshots` branch (never master, never the
+# `data` branch the site reads), append-only: a file is added, never changed or deleted.
+#
+# Safety for a public repo:
+#   - triggers: a schedule and a manual dispatch only (no pull_request / push / issue_comment), no inputs.
+#   - top-level permissions: contents: read. The one job adds contents: write, used only to push the snapshots branch.
+#   - every action is pinned to a full commit SHA (tag in the comment).
+#   - no secret is used anywhere. The push uses the run's own short-lived token as a one-off header, never in a URL or file.
+#   - the script makes API calls to the city and git operations; it never calls a model.
+name: agenda-snapshots
+
+on:
+  schedule:
+    - cron: "0 14 * * *"     # 14:00 UTC = 9 AM CDT: catches an agenda posted ahead of a meeting
+    - cron: "30 23 * * *"    # 23:30 UTC = 6:30 PM CDT: catches the day-of revision, after the Council has met
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: agenda-snapshots
+  cancel-in-progress: false
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt
+      - run: python scripts/check.py
+      - name: Snapshot the upcoming agendas
+        env:
+          PUBLISH_TOKEN: ${{ github.token }}
+          REPO_URL: ${{ github.server_url }}/${{ github.repository }}.git
+          SNAP_DIR: ${{ runner.temp }}/snapshots
+        run: python scripts/snapshot_agendas.py --out "$SNAP_DIR" --days 14 --remote "$REPO_URL" --branch snapshots --save --push

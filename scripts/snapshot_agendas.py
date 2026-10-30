@@ -10,7 +10,7 @@ meeting in the next --days days (Council and the three standing committees), as 
 
 A version identical to the latest saved one (same status, publish time and rows) is skipped, so a nightly run keeps
 every real revision and nothing else. Nothing is ever overwritten. Without --save it only prints what it would do.
-NOT scheduled: see docs/AGENDA-VS-MINUTES.md.
+Scheduled by .github/workflows/snapshots.yml (twice a day), onto its own `snapshots` branch, append-only.
 """
 
 import argparse
@@ -22,6 +22,7 @@ import sys
 import urllib.parse
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from pipeline import fetch  # noqa: E402
 from pipeline.compare import compact_row  # noqa: E402
@@ -85,28 +86,48 @@ def save(out_dir, result, now):
     return path
 
 
+def run(api, out_dir, today, days, now, save_files=False, remote=None, branch="snapshots", push=False, log=print):
+    """One snapshot pass. With a remote, the branch's earlier snapshots are restored first (so unchanged agendas are skipped)
+    and, with push, the new files are added to the branch append-only. Returns the plan."""
+    import publish_data
+    if remote:
+        publish_data.restore_branch(out_dir, remote, branch)
+    results = plan(api, out_dir, today, days)
+    if not results:
+        log(f"no meeting with an agenda file between {today} and {today + datetime.timedelta(days=days)}")
+    new = 0
+    for r in results:
+        e = r["event"]
+        verb = r["action"] if not save_files else ("saved" if r["action"] == "save" else "unchanged")
+        log(f"{e['date']} {e['body'][:44]:44} agenda {e['agenda_status']}, published {str(e['agenda_published'])[:16]}, "
+            f"{len(r['rows'])} rows, {sum(1 for x in r['rows'] if x['agenda_seq'] is not None)} on the agenda -> "
+            f"{'would ' if not save_files else ''}{verb}")
+        if save_files and r["action"] == "save":
+            save(out_dir, r, now)
+            new += 1
+    if not save_files:
+        log("dry run: nothing written (add --save to write)")
+    elif remote and push and new:
+        committed, added, pushed = publish_data.commit_tree(out_dir, remote, branch, f"Agenda snapshots: {new} new version(s)")
+        log(f"{'pushed' if pushed else 'not pushed'}: {len(added)} file(s) on the {branch} branch")
+    elif remote and push:
+        log("nothing new to push")
+    return results
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", required=True)
+    ap.add_argument("--remote", default=None, help="git remote URL holding the snapshots branch; earlier snapshots are restored from it")
+    ap.add_argument("--branch", default="snapshots")
+    ap.add_argument("--push", action="store_true", help="with --save and --remote: add new snapshots to the branch (append-only)")
     ap.add_argument("--days", type=int, default=7)
     ap.add_argument("--from", dest="start", default=None, help="first date to look at (default: today, UTC)")
     ap.add_argument("--save", action="store_true", help="write the snapshots (default: only print the plan)")
     a = ap.parse_args(argv)
     now = datetime.datetime.now(datetime.timezone.utc)
     today = datetime.date.fromisoformat(a.start) if a.start else now.date()
-    results = plan(LiveApi(), a.out, today, a.days)
-    if not results:
-        print(f"no meeting with an agenda file between {today} and {today + datetime.timedelta(days=a.days)}")
-    for r in results:
-        e = r["event"]
-        verb = r["action"] if not a.save else ("saved" if r["action"] == "save" else "unchanged")
-        print(f"{e['date']} {e['body'][:44]:44} agenda {e['agenda_status']}, published {str(e['agenda_published'])[:16]}, "
-              f"{len(r['rows'])} rows, {sum(1 for x in r['rows'] if x['agenda_seq'] is not None)} on the agenda -> "
-              f"{'would ' if not a.save else ''}{verb}")
-        if a.save and r["action"] == "save":
-            save(a.out, r, now)
-    if not a.save:
-        print("dry run: nothing written (add --save to write)")
+    run(LiveApi(), a.out, today, a.days, now, a.save, a.remote, a.branch, a.push)
 
 
 if __name__ == "__main__":

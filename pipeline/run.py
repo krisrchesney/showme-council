@@ -442,6 +442,17 @@ def main(argv=None):
     p.add_argument("doc_id")
     p.add_argument("--n", type=int, default=4)
     p.add_argument("--model", choices=sorted(API_EQUIV_RATES))
+    p = sub.add_parser("compare-page", help="local preview: planned vs what happened for one meeting (no model)")
+    p.add_argument("event_id", type=int)
+    p.add_argument("--history", default="history")
+    p.add_argument("--out", default="preview")
+    p = sub.add_parser("compare-labels", help="USES PLAN USAGE: plain-language labels for one meeting's items, checked like facts")
+    p.add_argument("event_id", type=int)
+    p.add_argument("--history", default="history")
+    p.add_argument("--out", default="preview")
+    p = sub.add_parser("trends-page", help="local preview: Council trends over time from the backfilled rows (no model)")
+    p.add_argument("--history", default="history")
+    p.add_argument("--out", default="preview")
     p = sub.add_parser("report", help="markdown summary of one processed document (quality + tokens, turns, time)")
     p.add_argument("doc_id")
     sub.add_parser("claude-path", help="show which claude CLI the pipeline will use, and the exact login command")
@@ -468,6 +479,43 @@ def main(argv=None):
         print(json.dumps(res["summary"], indent=2))
         u = res["usage"]
         print(f"usage: {u['tokens_in']:,} tokens in, {u['tokens_out']:,} out, {u['turns']} turns, {u['seconds']:.0f} s")
+    elif a.cmd in ("compare-page", "compare-labels"):
+        from pipeline import compare, labels, site as site_mod
+        events, rows = compare.load_history(a.history)
+        res = compare.classify_meeting(a.event_id, rows, events)
+        os.makedirs(a.out, exist_ok=True)
+        lpath = os.path.join(a.out, f"labels-{a.event_id}.json")
+        if a.cmd == "compare-labels":
+            labs, usage = labels.make_labels(res["meeting"], res["matters"], os.path.join(a.out, f"labels-{a.event_id}-work"))
+            _dump(lpath, {"labels": labs, "usage": usage})
+            shown = sum(1 for x in labs.values() if x["shown"])
+            print(f"{shown} of {len(labs)} labels passed the checks; usage: {usage['tokens_in']:,} tokens in, "
+                  f"{usage['tokens_out']:,} out, {usage['turns']} turns, {usage['seconds']:.0f} s")
+        labs = None
+        if os.path.exists(lpath):
+            with open(lpath, encoding="utf-8") as f:
+                labs = json.load(f)["labels"]
+        meta = next(m for m in events if m["event_id"] == a.event_id)
+        html = site_mod.compare_page(res, labs, {"site_url": meta.get("site_url"), "agenda_file": meta.get("agenda_file"),
+                                                   "minutes_file": meta.get("minutes_file")})
+        out = os.path.join(a.out, f"compare-{a.event_id}.html")
+        with open(out, "w", encoding="utf-8") as f:
+            f.write(html)
+        print(f"wrote {os.path.abspath(out)}")
+    elif a.cmd == "trends-page":
+        from pipeline import compare, site as site_mod, trends
+        events, rows = compare.load_history(a.history)
+        t = trends.trend_tables(events, rows)
+        acc = None
+        spath = os.path.join(a.out, "topic-sample.json")
+        if os.path.exists(spath):
+            with open(spath, encoding="utf-8") as f:
+                acc = json.load(f)
+        os.makedirs(a.out, exist_ok=True)
+        out = os.path.join(a.out, "trends.html")
+        with open(out, "w", encoding="utf-8") as f:
+            f.write(site_mod.trends_page(t, acc))
+        print(f"{t['meetings']} Council meetings, {t['items']:,} items -> {os.path.abspath(out)}")
     elif a.cmd == "report":
         print(report_markdown(a.doc_id))
     elif a.cmd == "claude-path":

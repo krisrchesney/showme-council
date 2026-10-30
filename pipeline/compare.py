@@ -20,6 +20,8 @@ Classes of a matter at one meeting:
 """
 
 import datetime
+import json
+import os
 import re
 
 HELD = re.compile(r"\bheld\b|\bhold\b", re.I)
@@ -42,9 +44,10 @@ def compact_row(event_id, item):
         "event_id": event_id, "item_id": item.get("EventItemId"),
         "agenda_seq": item.get("EventItemAgendaSequence"), "minutes_seq": item.get("EventItemMinutesSequence"),
         "matter_file": (item.get("EventItemMatterFile") or "").strip() or None,
-        "matter_id": item.get("EventItemMatterId"), "matter_type": item.get("EventItemMatterType"),
+        "matter_id": item.get("EventItemMatterId"), "matter_guid": item.get("EventItemMatterGuid"),
+        "matter_type": item.get("EventItemMatterType"),
         "action": item.get("EventItemActionName"), "passed": item.get("EventItemPassedFlagName"),
-        "title": title[:200], "mover": item.get("EventItemMover"),
+        "title": title[:1200], "mover": item.get("EventItemMover"),
     }
 
 
@@ -75,12 +78,25 @@ def _order(r):
     return (r["minutes_seq"] is None, r["minutes_seq"] or 0, r["agenda_seq"] or 0)
 
 
-def lifecycle(matter_file, rows, events):
+def build_index(rows, events):
+    """Index the rows once so many meetings can be classified quickly (hundreds of meetings, thousands of matters)."""
+    by_matter, by_event = {}, {}
+    for r in rows:
+        by_event.setdefault(r["event_id"], []).append(r)
+        if r["matter_file"]:
+            by_matter.setdefault(r["matter_file"], []).append(r)
+    return {"meta": {e["event_id"]: e for e in events}, "by_matter": by_matter, "by_event": by_event}
+
+
+def lifecycle(matter_file, rows, events, index=None):
     """Every step the rows record for one matter across meetings, oldest first:
     [{date, body, event_id, action, kind}]."""
-    meta = {e["event_id"]: e for e in events}
+    if index is not None:
+        meta, candidates = index["meta"], index["by_matter"].get(matter_file, [])
+    else:
+        meta, candidates = {e["event_id"]: e for e in events}, [r for r in rows if r["matter_file"] == matter_file]
     steps = []
-    for r in sorted((r for r in rows if r["matter_file"] == matter_file and r["event_id"] in meta), key=_order):
+    for r in sorted((r for r in candidates if r["event_id"] in meta), key=_order):
         e = meta[r["event_id"]]
         if r["action"]:
             steps.append({"date": e["date"], "body": e["body"], "event_id": e["event_id"],
@@ -115,19 +131,21 @@ def _classify(rows_here, earlier_events):
     return "other"
 
 
-def classify_meeting(event_id, rows, events):
-    """Classify every matter at one meeting. `rows` may include other meetings' rows (they supply the history)."""
-    meta = {e["event_id"]: e for e in events}
-    here = meta[event_id]
+def classify_meeting(event_id, rows, events, index=None):
+    """Classify every matter at one meeting. `rows` may include other meetings' rows (they supply the history).
+    Pass `index=build_index(rows, events)` when classifying many meetings."""
+    index = index or build_index(rows, events)
+    here = index["meta"][event_id]
+    here_rows = index["by_event"].get(event_id, [])
     by_matter = {}
-    for r in rows:
-        if r["event_id"] == event_id and r["matter_file"]:
+    for r in here_rows:
+        if r["matter_file"]:
             by_matter.setdefault(r["matter_file"], []).append(r)
-    without_matter = sum(1 for r in rows if r["event_id"] == event_id and not r["matter_file"])
+    without_matter = sum(1 for r in here_rows if not r["matter_file"])
 
     matters = []
     for mf, rs in sorted(by_matter.items()):
-        before = [s for s in lifecycle(mf, rows, events) if s["date"] < here["date"] and s["event_id"] != event_id]
+        before = [s for s in lifecycle(mf, rows, events, index) if s["date"] < here["date"] and s["event_id"] != event_id]
         earlier_events = {s["event_id"] for s in before}
         agenda_rows = sorted((r for r in rs if r["agenda_seq"] is not None), key=_order)
         recorded = sorted((r for r in rs if r["minutes_seq"] is not None), key=lambda r: r["minutes_seq"])
@@ -135,6 +153,7 @@ def classify_meeting(event_id, rows, events):
         first = min(all_dates)
         matters.append({
             "matter_file": mf, "matter_type": rs[0]["matter_type"], "title": rs[0]["title"],
+            "matter_id": rs[0].get("matter_id"), "matter_guid": rs[0].get("matter_guid"),
             "class": _classify(rs, earlier_events),
             "agenda_action": agenda_rows[0]["action"] if agenda_rows else None,
             "actions": [r["action"] for r in recorded],
@@ -144,6 +163,7 @@ def classify_meeting(event_id, rows, events):
             "ordinance_decided_on_first_appearance": (not earlier_events and rs[0]["matter_type"] == "Ordinance"
                                                       and any(action_kind(r["action"]) == "decided" for r in recorded)),
             "held_before": len({s["event_id"] for s in before if s["kind"] == "held"}),
+            "held_dates": sorted({s["date"] for s in before if s["kind"] == "held"}),
             "re_referred_before": len({s["event_id"] for s in before if s["kind"] == "re_referred"}),
             "meetings_before": len(earlier_events),
             "first_seen": first,
@@ -155,6 +175,23 @@ def classify_meeting(event_id, rows, events):
             "matters": matters, "counts": counts,
             "ordinance_decided_on_first_appearance": sum(1 for m in matters if m["ordinance_decided_on_first_appearance"]), "rows_without_matter": without_matter,
             "matter_count": len(matters), "held_before_any": sum(1 for m in matters if m["held_before"] > 0)}
+
+
+def rows_path(history_dir, event_id):
+    return os.path.join(history_dir, "rows", f"{event_id}.json")
+
+
+def load_history(history_dir):
+    """(events, rows) from a backfill cache folder (scripts/backfill_rows.py)."""
+    with open(os.path.join(history_dir, "events.json"), encoding="utf-8") as f:
+        events = json.load(f)
+    rows = []
+    for m in events:
+        p = rows_path(history_dir, m["event_id"])
+        if os.path.exists(p):
+            with open(p, encoding="utf-8") as f:
+                rows.extend(json.load(f)["rows"])
+    return events, rows
 
 
 def _days(iso):

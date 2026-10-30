@@ -1,0 +1,20 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["labels"],
+  "properties": {
+    "labels": {
+      "type": "array",
+      "maxItems": 200,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["matter_file", "label"],
+        "properties": {
+          "matter_file": {"type": "string"},
+          "label": {"type": "string", "description": "At most 25 words. Describes what the item is, never what happened to it."}
+        }
+      }
+    }
+  }
+}
