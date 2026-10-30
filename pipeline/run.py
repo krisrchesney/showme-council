@@ -453,6 +453,13 @@ def main(argv=None):
     p = sub.add_parser("trends-page", help="local preview: Council trends over time from the backfilled rows (no model)")
     p.add_argument("--history", default="history")
     p.add_argument("--out", default="preview")
+    p = sub.add_parser("explore-site", help="local preview: the explorer site (home, meetings, items, topics, trends, accuracy) from the backfilled rows (no model)")
+    p.add_argument("--history", default="history")
+    p.add_argument("--out", default=os.path.join("preview", "site"))
+    p.add_argument("--published", default=None, help="folder of published/*.json (default: data/published)")
+    p.add_argument("--metrics", default=None, help="metrics.jsonl (default: data/metrics.jsonl)")
+    p.add_argument("--labels", nargs="*", default=None, help="labels-*.json files (default: preview/labels-*.json)")
+    p.add_argument("--topic-sample", default=None, help="a fresh topic_sample.py result used for the accuracy page and for folding weak topics")
     p = sub.add_parser("report", help="markdown summary of one processed document (quality + tokens, turns, time)")
     p.add_argument("doc_id")
     sub.add_parser("claude-path", help="show which claude CLI the pipeline will use, and the exact login command")
@@ -516,6 +523,32 @@ def main(argv=None):
         with open(out, "w", encoding="utf-8") as f:
             f.write(site_mod.trends_page(t, acc))
         print(f"{t['meetings']} Council meetings, {t['items']:,} items -> {os.path.abspath(out)}")
+    elif a.cmd == "explore-site":
+        import glob
+        from pipeline import explore
+        docs, metrics, labs = [], [], {}
+        pub = a.published or paths.PUBLISHED
+        if os.path.isdir(pub):
+            for name in sorted(os.listdir(pub)):
+                if name.endswith(".json"):
+                    with open(os.path.join(pub, name), encoding="utf-8") as f:
+                        docs.append(json.load(f))
+        mpath = a.metrics or paths.METRICS
+        if os.path.exists(mpath):
+            with open(mpath, encoding="utf-8") as f:
+                metrics = [json.loads(line) for line in f if line.strip()]
+        for lp in (a.labels if a.labels is not None else glob.glob(os.path.join("preview", "labels-*.json"))):
+            if os.path.isfile(lp):
+                with open(lp, encoding="utf-8") as f:
+                    labs.update(json.load(f)["labels"])
+        acc = None
+        if a.topic_sample:
+            with open(a.topic_sample, encoding="utf-8") as f:
+                acc = explore.accuracy_from_sample(json.load(f))
+        site = explore.build_explorer(a.history, a.out, docs=docs, metrics=metrics, labels=labs, accuracy=acc)
+        site.write(a.out)
+        size = sum(len(t.encode("utf-8")) for t in site.pages.values())
+        print(f"{len(site.pages):,} pages, {size / 1e6:.1f} MB -> {os.path.abspath(os.path.join(a.out, 'index.html'))}")
     elif a.cmd == "report":
         print(report_markdown(a.doc_id))
     elif a.cmd == "claude-path":
