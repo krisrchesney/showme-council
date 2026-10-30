@@ -59,6 +59,8 @@ class WorkflowSafetyTests(unittest.TestCase):
                 self.assertRegex(ln, r"^\s+[A-Z_]+: \$\{\{ inputs\.\w+ \}\}$", ln)
         self.assertIn("bad doc_id", self.text)
         self.assertIn("bad mode", self.text)
+        self.assertIn("bad days", self.text)
+        self.assertIn("bad max_docs", self.text)
 
     def test_checkout_does_not_keep_credentials_and_the_job_has_a_timeout(self):
         self.assertIn("persist-credentials: false", self.text)
@@ -103,6 +105,19 @@ class TwoJobSplitTests(unittest.TestCase):
         self.assertRegex(self.text, r"dry_run:\n(?:        .+\n)*?        default: true")
         self.assertRegex(self.text, r"publish:\n(?:        .+\n)*?        default: false")
         self.assertRegex(self.text, r"mode:\n(?:        .+\n)*?        default: document")
+
+    def test_the_night_restores_the_data_branch_before_running_and_only_for_real_nightly_runs(self):
+        i_restore = self.run_job.index("Restore earlier results")
+        i_run = self.run_job.index("Run the pipeline")
+        self.assertLess(i_restore, i_run)
+        step = self.run_job[i_restore:i_run]
+        self.assertIn("inputs.mode == 'nightly' && inputs.dry_run == false", step)
+        self.assertIn("publish_data.py --restore", step)
+        self.assertNotIn("secrets.", step)
+
+    def test_window_defaults_are_small(self):
+        self.assertRegex(self.text, r"days:\n(?:        .+\n)*?        default: \"3\"")
+        self.assertRegex(self.text, r"max_docs:\n(?:        .+\n)*?        default: \"4\"")
 
     def test_the_schedule_is_still_off(self):
         self.assertNotIn("schedule:", "\n".join(active_lines(self.text)))

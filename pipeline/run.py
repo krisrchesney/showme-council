@@ -65,9 +65,11 @@ def seen_ids(state):
             if v["status"] in ("ok", "needs_model") or v.get("tries", 0) >= MAX_TRIES}
 
 
-def ingest(source_name, since, until, limit=None, fixture=False):
+def ingest(source_name, since, until, limit=None, fixture=False, kinds=("minutes",)):
+    """Download new documents. Minutes only by default: an agenda is a plan, not a record of what happened, and
+    publishing one needs the agenda-vs-minutes guard (docs/AGENDA-VS-MINUTES.md, T-3) that isn't built yet."""
     src = get_source(source_name, fixture=fixture)
-    refs = src.list_new(since, until, seen_ids(load_state()))
+    refs = [r for r in src.list_new(since, until, seen_ids(load_state())) if r.kind in kinds]
     refs.sort(key=lambda r: (r.date, r.kind != "minutes"))
     out = []
     for ref in refs[:limit]:
@@ -370,12 +372,12 @@ def _mark(doc_id, status, error=None):
     _dump(paths.STATE, state)
 
 
-def nightly(source_name, days, max_docs, loop_cap, fixture=False, stub_dir=None, today=None):
+def nightly(source_name, days, max_docs, loop_cap, fixture=False, stub_dir=None, today=None, kinds=("minutes",)):
     """One night. `loop_cap` bounds the night in API-equivalent units; it is a tripwire, not a budget."""
     today = today or datetime.date.today()
     since = (today - datetime.timedelta(days=days)).isoformat()
     until = (today + datetime.timedelta(days=1)).isoformat()
-    doc_ids = ingest(source_name, since, until, limit=max_docs, fixture=fixture)
+    doc_ids = ingest(source_name, since, until, limit=max_docs, fixture=fixture, kinds=kinds)
     used = 0.0
     tot = {"tokens_in": 0, "tokens_out": 0, "turns": 0, "seconds": 0.0}
     for doc_id in doc_ids:
@@ -412,6 +414,7 @@ def main(argv=None):
     p.add_argument("--until", default=(datetime.date.today() + datetime.timedelta(days=1)).isoformat())
     p.add_argument("--limit", type=int)
     p.add_argument("--fixture", action="store_true")
+    p.add_argument("--kinds", default="minutes", help="comma list of document kinds to fetch: minutes, agenda")
     p = sub.add_parser("estimate")
     p.add_argument("doc_id")
     p.add_argument("--model", default=DEFAULT_MODEL, choices=sorted(API_EQUIV_RATES))
@@ -433,6 +436,7 @@ def main(argv=None):
                    help="runaway-loop tripwire for the whole night, in API-equivalent units; not a spending limit")
     p.add_argument("--fixture", action="store_true")
     p.add_argument("--stub")
+    p.add_argument("--kinds", default="minutes", help="comma list of document kinds to fetch: minutes, agenda")
     sub.add_parser("build-site")
     p = sub.add_parser("canary-eval", help="run only the fact-checker on a saved run with planted errors added")
     p.add_argument("doc_id")
@@ -444,7 +448,7 @@ def main(argv=None):
     a = ap.parse_args(argv)
 
     if a.cmd == "ingest":
-        ingest(a.source, a.since, a.until, a.limit, a.fixture)
+        ingest(a.source, a.since, a.until, a.limit, a.fixture, kinds=tuple(k.strip() for k in a.kinds.split(",")))
     elif a.cmd == "estimate":
         print(json.dumps(estimate(a.doc_id, a.model), indent=2))
     elif a.cmd == "process":
@@ -458,7 +462,7 @@ def main(argv=None):
     elif a.cmd == "redecide":
         print(json.dumps(redecide(a.doc_id), indent=2))
     elif a.cmd == "nightly":
-        nightly(a.source, a.days, a.max_docs, a.loop_cap, a.fixture, a.stub)
+        nightly(a.source, a.days, a.max_docs, a.loop_cap, a.fixture, a.stub, kinds=tuple(k.strip() for k in a.kinds.split(",")))
     elif a.cmd == "canary-eval":
         res = canary_eval(a.doc_id, n=a.n, model=a.model)
         print(json.dumps(res["summary"], indent=2))
