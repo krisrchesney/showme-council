@@ -11,9 +11,9 @@ from tests.helpers import DOC_ID, STUB, TempDataTest
 
 
 class NightlyOfflineTests(TempDataTest):
-    def run_night(self):
+    def run_night(self, kinds=("minutes",)):
         return nightly("kansascity", days=10, max_docs=4, loop_cap=4.0, fixture=True,
-                       stub_dir=STUB, today=date(2026, 10, 29))
+                       stub_dir=STUB, today=date(2026, 10, 29), kinds=kinds)
 
     def test_one_night_publishes_only_accepted_claims(self):
         self.assertEqual(self.run_night(), 0.0)
@@ -33,12 +33,13 @@ class NightlyOfflineTests(TempDataTest):
         self.assertIn("Official record", page)
 
     def test_state_metrics_and_second_night_is_a_no_op(self):
-        self.run_night()
+        both = ("minutes", "agenda")
+        self.run_night(both)
         state = load_state()["docs"]
         self.assertEqual(state[DOC_ID]["status"], "ok")
         # The fixture has no agenda text, so the agenda fails ingest and is retried next night.
         self.assertEqual(state["kc-19561-agenda"]["status"], "error")
-        self.run_night()
+        self.run_night(both)
         with open(paths.METRICS, encoding="utf-8") as f:
             lines = [json.loads(x) for x in f if x.strip()]
         self.assertEqual([x["doc_id"] for x in lines], [DOC_ID])   # minutes processed once

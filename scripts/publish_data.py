@@ -84,14 +84,45 @@ def publish(data_dir, remote, branch="data", dry_run=False, message=None, identi
         _AUTH = []
 
 
+def restore(data_dir, remote, branch="data"):
+    """Copy the data branch's files into data_dir, so tonight's run starts from everything published so far.
+
+    Without this a fresh runner would know nothing: it would reprocess old documents and the site would show only
+    tonight's. Returns True if the branch existed. Never writes anywhere but data_dir."""
+    global _AUTH
+    _AUTH = _auth_args(remote)
+    work = tempfile.mkdtemp(prefix="showme-restore-")
+    try:
+        if git(work, "ls-remote", "--exit-code", "--heads", remote, branch, check=False).returncode != 0:
+            return False
+        git(work, "clone", "--quiet", "--depth", "1", "--branch", branch, "--single-branch", remote, "repo")
+        repo = os.path.join(work, "repo")
+        os.makedirs(data_dir, exist_ok=True)
+        for name in FILES:
+            if os.path.exists(os.path.join(repo, name)):
+                shutil.copyfile(os.path.join(repo, name), os.path.join(data_dir, name))
+        if os.path.isdir(os.path.join(repo, "published")):
+            shutil.rmtree(os.path.join(data_dir, "published"), ignore_errors=True)
+            shutil.copytree(os.path.join(repo, "published"), os.path.join(data_dir, "published"))
+        return True
+    finally:
+        shutil.rmtree(work, ignore_errors=True)
+        _AUTH = []
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser()
     ap.add_argument("--data", required=True)
     ap.add_argument("--remote", default=".")
     ap.add_argument("--branch", default="data")
     ap.add_argument("--dry-run", action="store_true")
+    ap.add_argument("--restore", action="store_true", help="copy the data branch into --data instead of publishing")
     a = ap.parse_args(argv)
     remote = os.path.abspath(a.remote) if os.path.exists(a.remote) else a.remote
+    if a.restore:
+        print("restored earlier results from the data branch" if restore(a.data, remote, a.branch)
+              else "no data branch yet: starting from nothing")
+        return
     committed, changed, pushed = publish(a.data, remote, a.branch, a.dry_run)
     if not committed:
         print("nothing to commit: the data branch is already up to date")
