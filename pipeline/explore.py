@@ -111,7 +111,7 @@ def member_safe(d):
     """A second line of defence for published summaries: a sentence or fact that names a council member is shown only if the run that
     wrote it verified it against the roll call (pipeline/members.py marked it). Anything older or unmarked is left out."""
     names = members.full_roster()
-    claims = [c for c in d["claims"] if not members.mentions(c.get("statement", ""), names) or "member_check" in (c.get("code_checks") or {})]
+    claims = [c for c in d["claims"] if not members.mentions(c.get("statement", ""), names) or c.get("members_verified")]
     keep = {c["id"] for c in claims}
     sentences = [x for x in d["sentences"] if not members.mentions(x.get("text", ""), names) or x.get("members_verified")]
     sentences = [dict(x, claim_ids=[c for c in x["claim_ids"] if c in keep]) for x in sentences]

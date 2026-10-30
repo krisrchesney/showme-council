@@ -108,16 +108,20 @@ class LegistarSource(Source):
                 ))
         return refs
 
-    def fetch(self, ref):
-        text = self.t.pdf_text(ref.pdf_url)
+    def items(self, event_id, with_votes=True):
+        """The meeting's item rows, each with its roll call once the meeting has happened."""
         items = []
-        for it in self.t.event_items(ref.extra["event_id"]):
+        for it in self.t.event_items(event_id):
             row = {k: it.get(k) for k in ITEM_FIELDS}
-            # Roll calls only exist once the meeting has happened, so only for minutes.
-            if ref.kind == "minutes" and it.get("EventItemPassedFlagName"):
+            if with_votes and it.get("EventItemPassedFlagName"):
                 row["votes"] = [
                     {"name": v.get("VotePersonName"), "vote": v.get("VoteValueName")}
                     for v in self.t.votes(it["EventItemId"])
                 ]
             items.append(row)
-        return text, items
+        return items
+
+    def fetch(self, ref):
+        text = self.t.pdf_text(ref.pdf_url)
+        # Roll calls only exist once the meeting has happened, so only for minutes.
+        return text, self.items(ref.extra["event_id"], with_votes=ref.kind == "minutes")

@@ -21,9 +21,10 @@ import argparse
 import datetime
 import json
 import os
+import re
 import sys
 
-from pipeline import canary, paths
+from pipeline import canary, members, paths
 from pipeline.agents import AgentOutputError, add_breakdowns, find_claude, login_instructions, run_agent, token_breakdown
 from pipeline.site import build_site
 from pipeline.sources import get_source
@@ -259,10 +260,13 @@ def finalize(doc_id, meta, claims, checks, summary, verdicts, usage_meta):
     _dump(os.path.join(wd, "report.json"), dict(result, report=report))
     _dump(os.path.join(paths.PUBLISHED, f"{doc_id}.json"), {
         "meta": meta, "headline": result["headline"], "generated_at": report["at"],
-        "sentences": [{"text": s["text"], "claim_ids": s["claim_ids"]} for s in result["published_sentences"]],
+        "sentences": [{"text": s["text"], "claim_ids": s["claim_ids"]} | ({"members_verified": True} if s.get("members_verified") else {})
+                      for s in result["published_sentences"]],
         "claims": [{k: c[k] for k in ("id", "type", "statement", "quote", "page", "matter_file", "outcome", "amount_usd")}
                    | {"code_checks": {"api": c["code_checks"]["api"], "quote_match": c["code_checks"]["quote_match"]}}
+                   | ({"members_verified": True} if members.mentions(c["statement"], members.full_roster(api_items)) else {})
                    for c in result["accepted"]],
+        "members_checked": True,
         "report": report,
     })
     os.makedirs(paths.DATA, exist_ok=True)
@@ -459,6 +463,7 @@ def main(argv=None):
     p = sub.add_parser("trends-page", help="local preview: Council trends over time from the backfilled rows (no model)")
     p.add_argument("--history", default="history")
     p.add_argument("--out", default="preview")
+    sub.add_parser("verify-members", help="re-check published documents against the city's roll calls (free, no model): a fact or sentence naming a council member stays only if it is a confirmed vote statement")
     p = sub.add_parser("explore-site", help="local preview: the explorer site (home, meetings, items, topics, trends, accuracy) from the backfilled rows (no model)")
     p.add_argument("--history", default="history")
     p.add_argument("--out", default=os.path.join("preview", "site"))
@@ -531,6 +536,24 @@ def main(argv=None):
         with open(out, "w", encoding="utf-8") as f:
             f.write(site_mod.trends_page(t, acc))
         print(f"{t['meetings']} Council meetings, {t['items']:,} items -> {os.path.abspath(out)}")
+    elif a.cmd == "verify-members":
+        from pipeline.sources import get_source
+        src = get_source("kansascity")
+        n = 0
+        for name in sorted(os.listdir(paths.PUBLISHED)) if os.path.isdir(paths.PUBLISHED) else []:
+            if not name.endswith(".json"):
+                continue
+            path = os.path.join(paths.PUBLISHED, name)
+            with open(path, encoding="utf-8") as f:
+                doc = json.load(f)
+            if doc.get("members_checked"):
+                continue
+            event_id = int(re.match(r"kc-(\d+)-", doc["meta"]["doc_id"]).group(1))
+            new = members.verify_published(doc, src.items(event_id))
+            _dump(path, new)
+            n += 1
+            print(f"{doc['meta']['doc_id']}: {len(doc['claims']) - len(new['claims'])} facts and {len(doc['sentences']) - len(new['sentences'])} sentences removed, rest marked")
+        print(f"verify-members: {n} document(s) checked")
     elif a.cmd == "explore-site":
         import glob
         from pipeline import explore

@@ -139,6 +139,15 @@ class TwoJobSplitTests(unittest.TestCase):
             self.assertNotIn(bad, self.build_job, bad)
         self.assertIn("persist-credentials: false", self.build_job)
 
+    def test_names_are_checked_against_roll_calls_after_the_model_and_before_the_artifact_is_uploaded(self):
+        i_run, i_check, i_up = (self.run_job.index(x) for x in ("Run the pipeline", "Check names against the city's roll calls", "upload-artifact"))
+        self.assertLess(i_run, i_check)
+        self.assertLess(i_check, i_up)
+        step = self.run_job[i_check:i_up]
+        self.assertIn("pipeline.run verify-members", step)
+        self.assertNotIn("secrets.", step)
+        self.assertIn("steps.cfg.outputs.mode == 'nightly' && steps.cfg.outputs.dry_run == 'false'", step)
+
     def test_the_build_installs_the_requirements_before_it_imports_the_pipeline(self):
         self.assertLess(self.build_job.index("pip install -r requirements.txt"), self.build_job.index("backfill_rows.py"))
 

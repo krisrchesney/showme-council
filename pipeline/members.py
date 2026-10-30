@@ -124,6 +124,34 @@ def _vote_of(items, matter, member):
     return out
 
 
+def verify_published(doc, api_items):
+    """A published document re-checked against the city's roll calls: every fact and sentence that names a member is kept and marked
+    `members_verified` only if it is a recorded-vote statement the roll call confirms; the rest are removed (and any sentence that
+    cited a removed fact). The document is marked `members_checked`. Pure: returns a new document."""
+    names = full_roster(api_items)
+    claims, dropped = [], set()
+    for c in doc["claims"]:
+        if not mentions(c.get("statement", ""), names):
+            claims.append(c)
+        elif check_text(c["statement"], api_items, [c.get("matter_file")])[0]:
+            claims.append(dict(c, members_verified=True))
+        else:
+            dropped.add(c["id"])
+    matter = {c["id"]: c.get("matter_file") for c in doc["claims"]}
+    sentences = []
+    for s in doc["sentences"]:
+        if dropped & set(s.get("claim_ids", [])):
+            continue
+        if not mentions(s.get("text", ""), names):
+            sentences.append(s)
+        elif check_text(s["text"], api_items, [matter.get(c) for c in s.get("claim_ids", [])])[0]:
+            sentences.append(dict(s, members_verified=True))
+    headline = doc.get("headline", "")
+    if mentions(headline, names):
+        headline = f"{doc['meta']['body']} {doc['meta']['kind']}, {doc['meta']['date']}"
+    return dict(doc, claims=claims, sentences=sentences, headline=headline, members_checked=True)
+
+
 def check_text(text, api_items=None, extra_matters=()):
     """(ok, reason). ok when the text names no member, or names members only in recorded-vote statements the roll call confirms."""
     names = full_roster(api_items)
