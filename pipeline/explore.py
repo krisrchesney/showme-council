@@ -35,9 +35,9 @@ body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.55 system-ui,-app
 a{color:var(--accent)}a:focus-visible,button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 .skip{position:absolute;left:-999px}.skip:focus{left:8px;top:8px;background:var(--card);padding:6px 10px;z-index:20}
 nav.top{position:sticky;top:0;z-index:10;background:var(--bg);border-bottom:1px solid var(--line)}
-nav.top .in{max-width:820px;margin:0 auto;padding:0 12px;display:flex;align-items:center;gap:4px;overflow-x:auto;white-space:nowrap}
+nav.top .in{max-width:1080px;margin:0 auto;padding:0 12px;display:flex;align-items:center;gap:4px;overflow-x:auto;white-space:nowrap}
 nav.top b{margin-right:8px}nav.top a{padding:12px 8px;text-decoration:none;color:var(--fg);font-size:.95rem}nav.top a[aria-current=page]{border-bottom:3px solid var(--accent)}
-main{max-width:820px;margin:0 auto;padding:16px 16px 56px}
+main{max-width:1080px;margin:0 auto;padding:16px 16px 56px}
 h1{font-size:1.5rem;line-height:1.25;margin:.3em 0 .2em}h2{font-size:1.15rem;margin:1.6em 0 .4em}h3{font-size:1rem;margin:1.2em 0 .3em}
 .crumbs{font-size:.88rem;color:var(--muted);margin:2px 0 6px}.muted{color:var(--muted);font-size:.9rem}
 .card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin:10px 0}
@@ -57,9 +57,24 @@ ol.steps li:before{content:"";position:absolute;left:-8px;top:8px;width:11px;hei
 ol.steps li.hold:before{background:var(--bad)}.row{padding:8px 0;border-bottom:1px solid var(--line)}.row:last-child{border:0}
 .big{font-size:1.6rem;font-weight:650;line-height:1.1}.stats{display:flex;flex-wrap:wrap;gap:16px}.stats div{min-width:84px}
 svg.chart{width:100%;height:auto;display:block}svg.chart text{fill:var(--muted);font-size:11px}svg.chart .bar{fill:var(--accent)}
-footer{max-width:820px;margin:0 auto;padding:0 16px 48px;font-size:.84rem;color:var(--muted)}
+footer{max-width:1080px;margin:0 auto;padding:0 16px 48px;font-size:.84rem;color:var(--muted)}
 """
 
+CSS += """
+main p,main li{max-width:75ch}
+.cols{display:block}.split{display:block}.two{display:block}
+.tile{transition:border-color .15s}.tile:hover{border-color:var(--accent)}
+@media (min-width:900px){
+ main{padding:28px 28px 72px}h1{font-size:2rem}.big{font-size:2rem}
+ nav.top .in{padding:0 28px}nav.top a{padding:14px 12px}
+ .cols{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:36px;align-items:start}
+ .split{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:36px;align-items:start}
+ .two{display:grid;grid-template-columns:1fr 1fr;gap:28px}
+ .grid{grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}.grid.compact{grid-template-columns:1fr 1fr}
+ .split .facts>summary{display:none}
+}
+@media (min-width:1280px){main,footer,nav.top .in{max-width:1180px}}
+"""
 NAV = [("index.html", "Latest"), ("meetings.html", "Meetings"), ("topics.html", "Topics"), ("search.html", "Search"),
        ("trends.html", "Trends"), ("about.html", "How it works")]
 
@@ -86,6 +101,9 @@ def badge_ai(text="AI-written, checked"):
 
 def slug(topic):
     return topic.replace("_", "-")
+
+
+OPEN_WIDE = "<script>if(window.matchMedia&&matchMedia('(min-width:900px)').matches){document.querySelectorAll('details.facts').forEach(function(d){d.open=true})}</script>"
 
 
 class Site:
@@ -270,12 +288,24 @@ def chips(file_topics, folded):
     return "".join(f"<a class='chip' href='../topic/{slug(t)}.html'>{e(NAMES[t])}</a>" for t in file_topics)
 
 
+_BUILT = None
+
+
+def item_link(m, up):
+    """The item's page here if this build has one; otherwise the city's own record of it (so a trimmed build has no dead links)."""
+    if _BUILT is None or m["file"] in _BUILT:
+        return f"{up}matter/{m['file']}.html", False
+    return legistar_link(m), True
+
+
 def matter_row(m, folded, up, labels, extra=""):
     lab = labels.get(m["file"])
     desc = (f"{badge_ai()}<i>{e(lab['label'])}</i>" if lab and lab.get("shown") else e(short_title(m["title"], 200)))
     status, _ = status_of(m)
     tp = "".join(f"<span class='chip'>{e(NAMES[t])}</span>" for t in shown_topics(m["title"], folded))
-    return (f"<div class='row'><a href='{up}matter/{e(m['file'])}.html'><b>{e(m['file'])}</b></a> "
+    href, ext = item_link(m, up)
+    num = (f"<a href='{e(href)}'><b>{e(m['file'])}</b></a>" + (" <span class='muted'>(city page)</span>" if ext else "")) if href else f"<b>{e(m['file'])}</b>"
+    return (f"<div class='row'>{num} "
             f"<span class='muted'>{e(m['type'] or '')}</span><br>{desc}<br><span class='muted'>{e(status)}"
             f"{f' &middot; held {m['held']} time' + ('s' if m['held'] != 1 else '') if m['held'] else ''}</span>{extra}<br>{tp}</div>")
 
@@ -288,7 +318,7 @@ def counts_block(counts, total):
 
 
 # ---------------------------------------------------------------------------------------------------------------- the pages
-def build_explorer(history_dir, out_dir, docs=None, metrics=None, labels=None, accuracy=None, built_at=None, load_history=None):
+def build_explorer(history_dir, out_dir, docs=None, metrics=None, labels=None, accuracy=None, built_at=None, load_history=None, trim=True):
     from pipeline.compare import load_history as _lh
     events, rows = (load_history or _lh)(history_dir)
     model = build_model(events, rows)
@@ -310,10 +340,22 @@ def build_explorer(history_dir, out_dir, docs=None, metrics=None, labels=None, a
         for x in mt["result"]["matters"]:
             council_matters[x["matter_file"]] = True
     topic_of_matter = {f: shown_topics(matters[f]["title"], folded) for f in council_matters if f in matters}
+    # a trimmed build writes pages for the items people are most likely to open: those at the latest meetings, those held
+    # again and again right now, and those with an AI description. Everything else links to the city's own record.
+    keep = {f for f in council_matters if f in matters}
+    if trim:
+        keep = set()
+        for mt in meetings[-6:]:
+            keep |= {y["matter_file"] for y in mt["result"]["matters"]}
+        keep |= {f for f in council_matters if f in matters and matters[f]["held"] >= 2 and status_of(matters[f])[1] == "held"}
+        keep |= {f for f in labels if f in matters}
+        keep &= set(matters)
+    global _BUILT
+    _BUILT = keep if trim else None
     by_topic = {t: [matters[f] for f, ts in topic_of_matter.items() if t in ts] for t in TOPICS}
 
     # ---- matter pages
-    for f in council_matters:
+    for f in sorted(keep):
         m = matters.get(f)
         if not m:
             continue
@@ -359,11 +401,11 @@ def build_explorer(history_dir, out_dir, docs=None, metrics=None, labels=None, a
                 f"<span class='muted'>Page {e(c['page'])} of the <a href='{e(d['meta']['pdf_url'])}'>official minutes</a></span></div>"
                 for c in d["claims"])
             r = d["report"]
-            summary = (f"<h2>What happened {badge_ai()}</h2>{sents}"
+            summary = (f"<div class='split'><div><h2>What happened {badge_ai()}</h2>{sents}"
                        f"<div class='card muted'>{r['claims_accepted']} of {r['claims_extracted']} extracted facts passed the check; the rest are not shown. "
                        f"These facts cover {r['coverage']['covered']} of the {r['coverage']['voted']} items the Council voted on. "
                        f"Each [number] jumps to the sentence in the official minutes it came from.</div>"
-                       f"<details><summary>Facts and their sources ({len(d['claims'])})</summary>{cards}</details>")
+                       f"</div><div><h2>Facts and their sources</h2><details class='facts'><summary>Show the {len(d['claims'])} facts</summary>{cards}</details></div></div>")
         else:
             reason = ("The minutes for this meeting are not posted yet." if not x.get("minutes_file")
                       else "No AI summary has been written for this meeting yet.")
@@ -387,7 +429,7 @@ def build_explorer(history_dir, out_dir, docs=None, metrics=None, labels=None, a
                 f"<h1>City Council, {e(x['date'])}</h1><p class='muted'>{' &middot; '.join(links)}</p>"
                 f"<div class='card k'>{badge_code()}{counts_block(counts, res['matter_count'])}</div>{summary}"
                 f"<h2>The agenda, item by item {badge_code()}</h2>{note}{''.join(groups)}")
-        site.page(f"meeting/{x['event_id']}.html", f"Council {x['date']}", body)
+        site.page(f"meeting/{x['event_id']}.html", f"Council {x['date']}", body, script=OPEN_WIDE if d else "")
         meeting_rows.append((x, res, d))
 
     # ---- meetings list
@@ -457,15 +499,15 @@ def build_explorer(history_dir, out_dir, docs=None, metrics=None, labels=None, a
         f"<a href='about.html'>how it works</a> page.</p><div class='grid'>{''.join(tiles)}</div>{fold_note}"), active="topics.html")
 
     # ---- search
-    index = [[f, short_title(matters[f]["title"], 140), "|".join(NAMES[t] for t in topic_of_matter[f]), matters[f]["last"], status_of(matters[f])[0]]
-             for f in sorted(topic_of_matter) if f in matters]
+    index = [[f, short_title(matters[f]["title"], 140), "|".join(NAMES[t] for t in topic_of_matter[f]), matters[f]["last"], status_of(matters[f])[0],
+              item_link(matters[f], "")[0] or ""] for f in sorted(topic_of_matter) if f in matters]
     site.pages["search.json"] = json.dumps(index, separators=(",", ":"))
     script = """<script>
 (function(){var q=document.getElementById('q'),out=document.getElementById('out'),data=null;
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
 function run(){if(!data)return;var t=q.value.toLowerCase().split(/\\s+/).filter(Boolean);if(!t.length){out.innerHTML='<p class="muted">Type an item number (like 260445), a word from a title, or a topic.</p>';return}
 var hits=[];for(var i=0;i<data.length&&hits.length<60;i++){var d=data[i],s=(d[0]+' '+d[1]+' '+d[2]).toLowerCase();if(t.every(function(w){return s.indexOf(w)>-1}))hits.push(d)}
-out.innerHTML=hits.length?hits.map(function(d){return '<div class="row"><a href="matter/'+esc(d[0])+'.html"><b>'+esc(d[0])+'</b></a><br>'+esc(d[1])+'<br><span class="muted">'+esc(d[4])+' &middot; '+esc(d[2])+'</span></div>'}).join(''):'<p class="muted">Nothing matched.</p>'}
+out.innerHTML=hits.length?hits.map(function(d){return '<div class="row">'+(d[5]?'<a href="'+esc(d[5])+'"><b>'+esc(d[0])+'</b></a>'+(d[5].indexOf('http')===0?' <span class="muted">(city page)</span>':''):'<b>'+esc(d[0])+'</b>')+'<br>'+esc(d[1])+'<br><span class="muted">'+esc(d[4])+' &middot; '+esc(d[2]).replace(/\|/g,', ')+'</span></div>'}).join(''):'<p class="muted">Nothing matched.</p>'}
 var p=new URLSearchParams(location.search).get('q');if(p)q.value=p;
 fetch('search.json').then(function(r){return r.json()}).then(function(j){data=j;run()}).catch(function(){out.innerHTML='<p class="muted">Search could not load.</p>'});
 q.addEventListener('input',run)})();
@@ -499,13 +541,13 @@ q.addEventListener('input',run)})();
     site.page("trends.html", "Trends", (
         f"<h1>Trends over time</h1><p class='muted'>Counted by code from the city's item records for {len(meeting_rows)} Council meetings. {badge_code()} "
         f"This page counts; it does not judge the Council. The city has changed how it records steps over the years, and {year_now} is a partial year, so compare across years with care.</p>"
-        f"<h2>Items held or sent back, as a share of items held or decided</h2>"
+        f"<div class='two'><div><h2>Items held or sent back, as a share of items held or decided</h2>"
         + bars(share, "Percent of held-or-decided items that were held", "Per year, held or sent back items divided by held plus decided items.",
                fmt=lambda v: f"{v}%")
-        + f"<h2>Typical days from first appearance to passage (ordinances)</h2><p class='muted'>Median, only for ordinances first seen at least {BURN_IN_DAYS} days after the data starts ({data_start}), and only years with at least 5 such ordinances.</p>"
+        + f"</div><div><h2>Typical days from first appearance to passage (ordinances)</h2><p class='muted'>Median, only for ordinances first seen at least {BURN_IN_DAYS} days after the data starts ({data_start}), and only years with at least 5 such ordinances.</p>"
         + bars(med, "Median days to passage", "Per year, the median number of days between an ordinance's first appearance and the meeting where it passed.",
                fmt=lambda v: f"{v:g}")
-        + f"<h2>Items per year</h2>" + bars([(y, by_year[y]["items"]) for y in yrs], "Items on Council agendas", "Per year, items on Council agendas, counted once per meeting."))
+        + f"</div></div><h2>Items per year</h2>" + bars([(y, by_year[y]["items"]) for y in yrs], "Items on Council agendas", "Per year, items on Council agendas, counted once per meeting."))
         , active="trends.html")
 
     # ---- about / accuracy
@@ -562,24 +604,26 @@ q.addEventListener('input',run)})();
             f"{badge_code()}{badge_ai()}<a href='about.html'>What the badges mean</a></p>",
             "<form class='search' role='search' action='search.html'><input name='q' type='search' aria-label='Search items' placeholder='Search an item number, a word or a topic'>"
             "<button type='submit'>Search</button></form>"]
+    left, right = [], []
     if last:
         x, res, d = last
         headline = (f"<p>{badge_ai()}</p>" + "".join(f"<p>{e(t['text'])}</p>" for t in d["sentences"][:3])) if d else "<p class='muted'>No AI summary yet for this meeting; the counts below are from the city's records.</p>"
-        home.append(f"<h2>Latest meeting with minutes: {e(x['date'])}</h2><div class='card k'>{headline}{counts_block(res['counts'], res['matter_count'])}"
+        left.append(f"<h2>Latest meeting with minutes: {e(x['date'])}</h2><div class='card k'>{headline}{counts_block(res['counts'], res['matter_count'])}"
                     f"<p><a href='meeting/{x['event_id']}.html'>See everything that happened</a></p></div>")
     if newest and newest is not last:
         x, res, _ = newest
-        home.append(f"<p class='muted'>The agenda for {e(x['date'])} ({plural(res['matter_count'], 'item')}) is posted; minutes are not yet. "
+        left.append(f"<p class='muted'>The agenda for {e(x['date'])} ({plural(res['matter_count'], 'item')}) is posted; minutes are not yet. "
                     f"<a href='meeting/{x['event_id']}.html'>See the agenda</a>.</p>")
-    home.append(f"<h2>Topics</h2><div class='grid'>{''.join(tiles[:6])}</div><p><a href='topics.html'>All topics</a></p>")
     wl = [m for m in held_now if m["held"] >= 3][:6]
     if wl:
-        home.append("<h2>Held again and again</h2><p class='muted'>Items whose latest step is a hold, with the most holds so far. "
+        left.append("<h2>Held again and again</h2><p class='muted'>Items whose latest step is a hold, with the most holds so far. "
                     f"{badge_code()}</p><div class='card'>" + "".join(matter_row(m, folded, "", labels) for m in wl) + "</div>")
+    right.append(f"<h2>Topics</h2><div class='grid compact'>{''.join(tiles[:6])}</div><p><a href='topics.html'>All topics</a></p>")
     recent = list(reversed(meeting_rows))[:6]
-    home.append("<h2>Recent meetings</h2><div class='card'>" + "".join(
+    right.append("<h2>Recent meetings</h2><div class='card'>" + "".join(
         f"<div class='row'><a href='meeting/{x['event_id']}.html'>{e(x['date'])}</a> <span class='muted'>&middot; {plural(res['matter_count'], 'item')}, "
         f"{res['counts'].get('deferred', 0)} held &middot; {'AI summary' if d else ('records only' if x.get('minutes_file') else 'agenda only')}</span></div>"
         for x, res, d in recent) + "</div><p><a href='meetings.html'>All meetings</a></p>")
+    home.append(f"<div class='cols'><div>{''.join(left)}</div><div>{''.join(right)}</div></div>")
     site.page("index.html", "Latest", "".join(home), active="index.html")
     return site

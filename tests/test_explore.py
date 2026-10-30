@@ -135,7 +135,7 @@ class Site(unittest.TestCase):
     def test_search_index_has_numbers_titles_and_topics(self):
         idx = json.loads(self.site.pages["search.json"])
         row = next(r for r in idx if r[0] == "260445")
-        self.assertEqual(len(row), 5)
+        self.assertEqual(len(row), 6)
         self.assertTrue(row[1] and row[2])
 
     def test_writing_creates_the_files(self):
