@@ -97,8 +97,8 @@ class FourSavedMeetingsTests(unittest.TestCase):
 
     def test_the_output_has_only_fields_the_city_supplied_or_counts_of_them(self):
         keys = set(self.r[OCT22]["matters"][0])
-        self.assertEqual(keys, {"matter_file", "matter_type", "title", "class", "agenda_action", "actions", "final_action",
-                                "ordinance_decided_on_first_appearance", "held_before", "re_referred_before", "meetings_before",
+        self.assertEqual(keys, {"matter_file", "matter_type", "title", "matter_id", "matter_guid", "class", "agenda_action", "actions", "final_action",
+                                "ordinance_decided_on_first_appearance", "held_before", "held_dates", "re_referred_before", "meetings_before",
                                 "first_seen", "days_since_first_seen"})
         row_titles = {r["matter_file"]: r["title"] for r in ROWS if r["matter_file"]}
         for m in self.r[OCT22]["matters"]:
@@ -162,7 +162,7 @@ class NoModelTests(unittest.TestCase):
         with open(compare.__file__, encoding="utf-8") as f:
             src = f.read()
         imports = re.findall(r"(?m)^(?:from|import) (\S+)", src)
-        self.assertEqual(sorted(set(imports)), ["datetime", "re"])        # only the standard library
+        self.assertEqual(sorted(set(imports)), ["datetime", "json", "os", "re"])   # only the standard library: no model, no network
         for word in ("run_agent", "anthropic", "subprocess", "urllib", "pipeline"):
             self.assertNotIn(word, src, word)
 

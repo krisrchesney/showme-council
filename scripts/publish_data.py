@@ -110,6 +110,71 @@ def restore(data_dir, remote, branch="data"):
         _AUTH = []
 
 
+def restore_branch(dest, remote, branch):
+    """Copy a whole branch's files into dest (for append-only stores such as agenda snapshots). True if the branch exists."""
+    global _AUTH
+    _AUTH = _auth_args(remote)
+    work = tempfile.mkdtemp(prefix="showme-rb-")
+    try:
+        if git(work, "ls-remote", "--exit-code", "--heads", remote, branch, check=False).returncode != 0:
+            return False
+        git(work, "clone", "--quiet", "--depth", "1", "--branch", branch, "--single-branch", remote, "repo")
+        repo = os.path.join(work, "repo")
+        for root, dirs, files in os.walk(repo):
+            dirs[:] = [d for d in dirs if d != ".git"]
+            for name in files:
+                src = os.path.join(root, name)
+                target = os.path.join(dest, os.path.relpath(src, repo))
+                os.makedirs(os.path.dirname(target), exist_ok=True)
+                shutil.copyfile(src, target)
+        return True
+    finally:
+        shutil.rmtree(work, ignore_errors=True)
+        _AUTH = []
+
+
+def commit_tree(src_dir, remote, branch, message, dry_run=False, identity=("showme-council bot", "bot@users.noreply.github.com")):
+    """Add src_dir's files to a branch, APPEND-ONLY: a file that already exists there with different content is an error,
+    and nothing already on the branch is ever deleted. Returns (committed, files_added, pushed)."""
+    global _AUTH
+    _AUTH = _auth_args(remote)
+    work = tempfile.mkdtemp(prefix="showme-ct-")
+    try:
+        repo = os.path.join(work, "repo")
+        if git(work, "ls-remote", "--exit-code", "--heads", remote, branch, check=False).returncode == 0:
+            git(work, "clone", "--quiet", "--branch", branch, "--single-branch", remote, "repo")
+        else:
+            os.makedirs(repo)
+            git(repo, "init", "--quiet")
+            git(repo, "checkout", "--quiet", "--orphan", branch)
+            git(repo, "remote", "add", "origin", remote)
+        git(repo, "config", "user.name", identity[0])
+        git(repo, "config", "user.email", identity[1])
+        for root, dirs, files in os.walk(src_dir):
+            for name in files:
+                src = os.path.join(root, name)
+                target = os.path.join(repo, os.path.relpath(src, src_dir))
+                if os.path.exists(target):
+                    with open(src, "rb") as a, open(target, "rb") as b:
+                        if a.read() != b.read():
+                            raise FileExistsError(f"{os.path.relpath(src, src_dir)} already exists on {branch} with different content")
+                    continue
+                os.makedirs(os.path.dirname(target), exist_ok=True)
+                shutil.copyfile(src, target)
+        git(repo, "add", "--all")
+        added = [ln[3:] for ln in git(repo, "status", "--porcelain").stdout.splitlines()]
+        if not added:
+            return False, [], False
+        if dry_run:
+            return True, added, False
+        git(repo, "commit", "--quiet", "-m", message)
+        git(repo, "push", "--quiet", "origin", f"HEAD:refs/heads/{branch}")
+        return True, added, True
+    finally:
+        shutil.rmtree(work, ignore_errors=True)
+        _AUTH = []
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser()
     ap.add_argument("--data", required=True)

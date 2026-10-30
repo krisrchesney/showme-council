@@ -23,3 +23,7 @@ site/
 
 # Model-comparison runs (kept locally; see docs/MODEL-COMPARISON.md for the write-up)
 experiments/
+
+# Local caches and previews for the agenda-vs-minutes work (not published)
+history/
+preview/
