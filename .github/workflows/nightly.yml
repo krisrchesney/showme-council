@@ -144,6 +144,11 @@ jobs:
           else
             python -m pipeline.run nightly --days "$DAYS" --max-docs "$MAX_DOCS" --loop-cap 4.00
           fi
+      - name: Check names against the city's roll calls (free, no model)
+        if: ${{ steps.cfg.outputs.mode == 'nightly' && steps.cfg.outputs.dry_run == 'false' }}
+        env:
+          SHOWME_DATA_DIR: ${{ runner.temp }}/showme-data
+        run: python -m pipeline.run verify-members
       - name: Show what would be committed to the data branch (nothing is pushed)
         env:
           REPO_URL: ${{ github.server_url }}/${{ github.repository }}.git

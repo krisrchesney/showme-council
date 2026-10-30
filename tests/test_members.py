@@ -135,10 +135,34 @@ class Labels(unittest.TestCase):
         self.assertIn("member_named", out["260445"]["why_not"])
 
 
+class RecheckPublished(unittest.TestCase):
+    def doc(self):
+        cs = [{"id": "c1", "statement": "Ordinance 260898 passed.", "matter_file": "260898"},
+              {"id": "c2", "statement": "Ordinance 260898 passed, with Parks-Shaw voting Nay.", "matter_file": "260898"},
+              {"id": "c3", "statement": "Ordinance 260899 passed, with Parks-Shaw voting Aye.", "matter_file": "260899"},
+              {"id": "c4", "statement": "Lucas championed Ordinance 260905.", "matter_file": "260905"}]
+        ss = [{"text": "Ordinance 260898 passed.", "claim_ids": ["c1"]},
+              {"text": "Ordinance 260898 passed. Parks-Shaw voted Nay on it.", "claim_ids": ["c2"]},
+              {"text": "Ordinance 260899 passed over a Nay from Parks-Shaw.", "claim_ids": ["c3"]},
+              {"text": "Ordinance 260905 passed.", "claim_ids": ["c4"]}]
+        return {"meta": {"body": "Council", "kind": "minutes", "date": "2026-10-29", "doc_id": "kc-1-minutes"},
+                "headline": "Parks-Shaw loses again", "claims": cs, "sentences": ss}
+
+    def test_old_documents_are_re_checked_against_the_roll_call(self):
+        new = members.verify_published(self.doc(), ITEMS)
+        self.assertEqual([c["id"] for c in new["claims"]], ["c1", "c2"])
+        self.assertTrue(new["claims"][1]["members_verified"])
+        self.assertNotIn("members_verified", new["claims"][0])
+        self.assertEqual([s["claim_ids"] for s in new["sentences"]], [["c1"], ["c2"]])
+        self.assertTrue(new["sentences"][1]["members_verified"])
+        self.assertTrue(new["members_checked"])
+        self.assertEqual(new["headline"], "Council minutes, 2026-10-29")
+
+
 class ExplorerBackstop(unittest.TestCase):
     def doc(self):
         c1 = {"id": "c1", "statement": "Ordinance 260898 passed.", "code_checks": {"api": "agree"}}
-        c2 = {"id": "c2", "statement": "Parks-Shaw voted Nay on Ordinance 260898.", "code_checks": {"api": "agree", "member_check": None}}
+        c2 = {"id": "c2", "statement": "Parks-Shaw voted Nay on Ordinance 260898.", "code_checks": {"api": "agree"}, "members_verified": True}
         c3 = {"id": "c3", "statement": "Parks-Shaw voted Nay on Ordinance 260899.", "code_checks": {"api": "agree"}}     # an older record
         s = [{"text": "Ordinance 260898 passed.", "claim_ids": ["c1"]},
              {"text": "Parks-Shaw voted Nay on Ordinance 260898.", "claim_ids": ["c2"], "members_verified": True},
