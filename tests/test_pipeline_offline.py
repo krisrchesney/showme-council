@@ -37,13 +37,12 @@ class NightlyOfflineTests(TempDataTest):
         self.run_night(both)
         state = load_state()["docs"]
         self.assertEqual(state[DOC_ID]["status"], "ok")
-        # The fixture has no agenda text, so the agenda fails ingest and is retried next night.
-        self.assertEqual(state["kc-19561-agenda"]["status"], "error")
+        self.assertEqual(state["kc-19561-agenda"]["status"], "ok")        # the agenda has fixture text now
         self.run_night(both)
         with open(paths.METRICS, encoding="utf-8") as f:
             lines = [json.loads(x) for x in f if x.strip()]
-        self.assertEqual([x["doc_id"] for x in lines], [DOC_ID])   # minutes processed once
-        self.assertEqual(load_state()["docs"]["kc-19561-agenda"]["tries"], 2)
+        self.assertEqual([x["doc_id"] for x in lines], [DOC_ID, "kc-19561-agenda"])   # each processed once
+        self.assertEqual(load_state()["docs"]["kc-19561-agenda"]["tries"], 1)           # and not retried
 
     def test_index_page_shows_the_metric(self):
         self.run_night()

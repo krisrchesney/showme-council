@@ -27,6 +27,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--event-id", type=int, default=19561)  # KC Council, 2026-10-22
     ap.add_argument("--date", default="2026-10-22")
+    ap.add_argument("--agenda", action="store_true", help="also save the agenda text (the minutes are always saved)")
     args = ap.parse_args()
 
     t = LiveTransport("kansascity")
@@ -56,6 +57,12 @@ def main():
     name = os.path.basename(urllib.parse.urlparse(url).path).rsplit(".", 1)[0] + ".txt"
     with open(os.path.join(out, name), "w", encoding="utf-8") as f:
         f.write(t.pdf_text(url))
+    if args.agenda and ev.get("EventAgendaFile"):
+        aurl = ev["EventAgendaFile"]
+        aname = os.path.basename(urllib.parse.urlparse(aurl).path).rsplit(".", 1)[0] + ".txt"
+        with open(os.path.join(out, aname), "w", encoding="utf-8") as f:
+            f.write(t.pdf_text(aurl))
+        print(f"agenda text -> {aname}")
     print(f"wrote {out}: {len(items)} items, {len(votes)} roll calls, minutes -> {name}")
 
 

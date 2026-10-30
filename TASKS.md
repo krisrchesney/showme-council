@@ -58,18 +58,6 @@ Done when:
 - [ ] No secrets are used by this workflow
 - [ ] README has a status badge for it
 
-### T-3: The agenda guard: an agenda is a plan, never an outcome
-Status: Ready (core of docs/AGENDA-VS-MINUTES.md)
-Owns: pipeline/verify.py `code_checks()` (new `agenda_states_outcome` check); tests/test_verify.py new class; tests/fixtures/kansascity/ agenda text (via scripts/refresh_fixture.py --agenda)
-Blocked by: none
-Uses plan usage: no
-Why: Anything the model writes from an agenda is a plan. "Passed", "approved" or "authorizes" on an agenda is wrong even if the quote exists, and the agenda-vs-minutes feature makes agendas a first-class input.
-Done when:
-- [ ] For `kind == "agenda"`, a claim with outcome passed/adopted/failed, or "passed", "approved", "adopted", "authorizes" in the statement, is rejected with reason `agenda_states_outcome`
-- [ ] The KC agenda PDF text for event 19561 is in the fixture, so the offline nightly test no longer logs an ingest error for it
-- [ ] Tests cover a rejected claim and an allowed one ("is scheduled for a vote", "is listed on the agenda")
-- [ ] The extractor and summarizer prompts say agenda claims use "scheduled" or "listed" (checked by a prompt test)
-
 ### T-4: Add Columbia as a second Legistar source
 Status: Ready
 Owns: pipeline/sources/__init__.py `get_source`; `COMO_BODIES` constant in pipeline/sources/legistar.py; tests/fixtures/gocolumbiamo/ (new); tests/test_columbia.py (new)
@@ -158,18 +146,6 @@ Done when:
 - [ ] One Sonnet run on the committee minutes (kc-19460-minutes) into experiments/ shows `advanced` claims that the city's record confirms
 - [ ] Coverage and pass rate on that run are no worse than the saved one
 
-### T-16: The matcher: classify every matter at a meeting from the API rows
-Status: Ready
-Owns: pipeline/compare.py (new); tests/test_compare.py (new); tests/fixtures/kansascity/ (saved event-item rows for 19561, 19539, 19521 and 19460, with their sequences and actions)
-Blocked by: none
-Uses plan usage: no
-Why: Probe (docs/AGENDA-VS-MINUTES.md): the API marks each row planned (agenda sequence) or recorded (minutes sequence), and a matter's rows tell what happened to it. The comparison can be computed with no model.
-Done when:
-- [ ] Each matter at a meeting is classified: carried through, advanced on the floor, deferred, added at the meeting, on the agenda with no minutes row, or receive and file
-- [ ] Pinned on the saved meetings: 260947 and 260946 (2026-10-22) are advanced on the floor, 260850 (2026-10-01) is added at the meeting, 260445 (2026-10-22) is deferred, 260893 (2026-10-01) planned introduction ended up referred
-- [ ] Per-matter lifecycles rebuilt from rows across meetings, with "held N times before this meeting"; 260445 shows 9 holds from 2026-05-07 when given the history rows
-- [ ] The output carries only fields from the city's rows; no model call, no generated text
-
 ### T-17: The one-meeting comparison page
 Status: Ready
 Owns: pipeline/site.py (new `compare_page()`); tests/test_compare_page.py (new)
@@ -207,7 +183,7 @@ Done when:
 - [ ] Tagging every past matter with a model is not done (about 1.1M tokens)
 
 ### T-20: Snapshot upcoming agendas each night
-Status: Ready
+Status: Script, tests and a live dry run done 2026-10-29. Remaining: the workflow step that schedules it (a workflow change that needs the user's OK; not scheduled)
 Owns: scripts/snapshot_agendas.py (new); a step in .github/workflows/nightly.yml (with the user's OK, it is a workflow change); tests/test_snapshot_agendas.py (new)
 Blocked by: none
 Uses plan usage: no
@@ -227,3 +203,5 @@ Done when:
 - T-9: Extractor prompt asks for one fact per voted or money item. One Sonnet 5.5 run on kc-19561-minutes: 60 facts, 55 pass, coverage 26/29, all 42 vote facts match the city's record. Found and fixed a first-occurrence flaw in the matter-block check on the way (docs/MODEL-COMPARISON.md) (2026-10-29)
 - T-5: Planted errors (flipped outcome, false "unanimously", swapped councilmember, wrong body) ride in the fact-checker's input, are never told apart and never published. First measurement on three saved runs: caught 10 of 10, 0 of 118 real claims flagged; 78.9k tokens in / 9.6k out, 6 turns, 63 s (2026-10-29)
 - T-11: Outcomes are compared with the city's own wording (held = Held on Docket / Hold on Agenda; referred includes Re-referred; advanced = Adv and Do Pass) and "Adv and Do Pass" no longer reads as "passed". Post-hoc re-score of the three test-2 runs: Oct 22 and Oct 8 unchanged, Sept 8 committee 7 to 9 of 10 (70% to 90%); labelled post-hoc, the pre-registered test still stands as failed (2026-10-29)
+- T-3: The agenda guard: an agenda-derived claim can't carry a recorded outcome or say "passed", "approved" or "authorizes" unless it is plan-worded ("scheduled", "listed", "would"); the fixture agenda text is in, and the stub claims run through the agenda publish nothing (2026-10-29)
+- T-16: The matcher (`pipeline/compare.py`): every matter at a meeting is classified from the city's rows, with how many times it was held before. Pinned on four saved meetings; 260445 shows 8 holds before Oct 22, matching the city's own history. No model, 0 tokens (2026-10-29)

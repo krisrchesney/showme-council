@@ -24,8 +24,25 @@ class MinutesOnlyTests(TempDataTest):
 
     def test_agendas_are_fetched_only_when_asked_for(self):
         ids = run.ingest("kansascity", "2026-10-22", "2026-10-23", fixture=True, kinds=("minutes", "agenda"))
-        self.assertEqual(ids, [DOC_ID])        # the fixture has no agenda text, so the agenda fails ingest...
-        self.assertEqual(load_state()["docs"]["kc-19561-agenda"]["status"], "error")   # ...and that is recorded
+        self.assertEqual(ids, [DOC_ID, "kc-19561-agenda"])
+        self.assertNotIn("kc-19561-agenda", load_state()["docs"])      # fetched fine: nothing recorded as failed
+
+    def test_a_failed_agenda_fetch_is_recorded_and_retried_the_next_night(self):
+        from unittest import mock
+        from pipeline.sources.legistar import FixtureTransport
+        real = FixtureTransport.pdf_text
+
+        def flaky(self, url):
+            if "_A_" in url:
+                raise ValueError("PDF has almost no extractable text")
+            return real(self, url)
+        both = ("minutes", "agenda")
+        with mock.patch.object(FixtureTransport, "pdf_text", flaky):
+            for night in (1, 2):
+                nightly("kansascity", days=10, max_docs=4, loop_cap=4.0, fixture=True, stub_dir=STUB,
+                        today=date(2026, 10, 29), kinds=both)
+                st = load_state()["docs"]["kc-19561-agenda"]
+                self.assertEqual((st["status"], st["tries"]), ("error", night))
 
     def test_a_default_night_never_touches_an_agenda(self):
         nightly("kansascity", days=10, max_docs=4, loop_cap=4.0, fixture=True, stub_dir=STUB, today=date(2026, 10, 29))
