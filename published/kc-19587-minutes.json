@@ -100,7 +100,8 @@
       "code_checks": {
         "api": "agree",
         "quote_match": "exact"
-      }
+      },
+      "members_verified": true
     },
     {
       "id": "c5",
@@ -114,7 +115,8 @@
       "code_checks": {
         "api": "agree",
         "quote_match": "exact"
-      }
+      },
+      "members_verified": true
     },
     {
       "id": "c6",
@@ -128,7 +130,8 @@
       "code_checks": {
         "api": "agree",
         "quote_match": "exact"
-      }
+      },
+      "members_verified": true
     },
     {
       "id": "c7",
@@ -669,5 +672,6 @@
         }
       }
     }
-  }
+  },
+  "members_checked": true
 }
