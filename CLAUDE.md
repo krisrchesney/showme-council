@@ -73,6 +73,12 @@ it is deliberately not written here because this repo is public). Load ArtifactD
 - When done, update the ask in `devprojects/showme-council` pinned with `if_version`: copy the status and
   answer, set `handledAt` and `handledBy`, and note the result in `lastActivity`. Add an ask there when
   you need something only the user can give, and append a `usage` entry when a run finishes.
+- Answers given in chat count too. When the user answers or decides something in chat (here, or relayed
+  from the main chat) that matches an open ask, close that ask in the same turn: copy the answer, set
+  `handledAt` and `handledBy`. The board must never show "Needs you" for something already answered.
+- Before ending a turn, make the board match the chat: every question you are leaving with the user is an
+  open ask (with context and your pick), every question no longer open is handled, and `status`,
+  `nextSteps` and `lastActivity` (a short sentence, plus `updatedAt`) reflect this turn.
 - Full rules: `../CommandCenter/CLAUDE.md`, rule `cc-projects-status`. Never put secrets or tokens in the
   database, and never write the board's link, personal paths or account names into this public repo.
 
