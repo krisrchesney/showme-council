@@ -45,7 +45,7 @@ def page(title, body, extra_css=""):
     return (f"<!doctype html><html lang='en'><head><meta charset='utf-8'>"
             f"<meta name='viewport' content='width=device-width,initial-scale=1'>"
             f"<title>{e(title)}</title><style>{CSS}{extra_css}</style></head><body><main>{body}"
-            f"<footer>{e(FOOTER)}</footer></main></body></html>")
+            f"<footer>{e(FOOTER)}</footer></main><script data-goatcounter='https://krisrchesney.goatcounter.com/count' async src='//gc.zgo.at/count.js'></script></body></html>")
 
 
 def pct(x):

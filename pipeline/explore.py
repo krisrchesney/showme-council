@@ -137,7 +137,7 @@ class Site:
             f"<meta name='viewport' content='width=device-width,initial-scale=1'><title>{e(title)} | showme-council</title>"
             f"<link rel='stylesheet' href='{up}style.css'>{head_extra}</head><body><a class='skip' href='#main'>Skip to content</a>"
             f"<nav class='top' aria-label='Main'><div class='in'><b>showme-council</b>{nav}</div></nav>"
-            f"<main id='main'>{body}</main>{foot}{script}</body></html>")
+            f"<main id='main'>{body}</main>{foot}{script}<script data-goatcounter='https://krisrchesney.goatcounter.com/count' async src='//gc.zgo.at/count.js'></script></body></html>")
 
     def write(self, out):
         for path, text in self.pages.items():
