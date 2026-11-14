@@ -10,6 +10,8 @@ agent checks every fact against the source text, and code checks quotes, numbers
 the city's own vote record. Only what passes both is published, and every page
 shows how much was rejected.
 
+**Why this exists, in plain language:** [WHY.md](WHY.md)
+
 - How it works, how claims are scored, schedule options and plan usage: [DESIGN.md](DESIGN.md)
 - Rules for agents and people working in the repo: [CLAUDE.md](CLAUDE.md)
 - Backlog for parallel builder sessions: [TASKS.md](TASKS.md)
