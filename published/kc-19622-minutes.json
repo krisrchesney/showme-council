@@ -1,0 +1,742 @@
+{
+  "meta": {
+    "doc_id": "kc-19622-minutes",
+    "source": "kansascity",
+    "body": "Council",
+    "date": "2026-11-12",
+    "kind": "minutes",
+    "pdf_url": "https://kansascity.legistar1.com/kansascity/meetings/2026/11/19622_M_Council_26-11-12_Meeting_Minutes.pdf",
+    "detail_url": "https://kansascity.legistar.com/MeetingDetail.aspx?LEGID=19622&GID=821&G=D2E89A09-8736-4EFB-B4AE-572E0903BD5A",
+    "extra": {
+      "event_id": 19622
+    }
+  },
+  "headline": "Council minutes, 2026-11-12",
+  "generated_at": "2026-11-14T08:21:22+00:00",
+  "sentences": [
+    {
+      "text": "At its November 12, 2026 meeting, the Council passed Ordinance 260951 (an ordinance is a city law) on the Port Authority loan.",
+      "claim_ids": [
+        "c6"
+      ]
+    },
+    {
+      "text": "The Council passed Ordinance 260711, a one-year contract renewal with LAZ Parking Midwest, LLC in the amount of $1,942,859.",
+      "claim_ids": [
+        "c22",
+        "c23"
+      ]
+    },
+    {
+      "text": "It passed Ordinance 260970, which estimates $1,000,000.00 in contributions from Jackson County and appropriates $1,000,000.00 in the Capital Improvements Sales Tax Fund.",
+      "claim_ids": [
+        "c29",
+        "c30"
+      ]
+    },
+    {
+      "text": "The Council passed Ordinance 260954, which accepts a $49,000.00 grant and appropriates $49,000.00 in Fund 2580.",
+      "claim_ids": [
+        "c12",
+        "c13"
+      ]
+    },
+    {
+      "text": "It passed Ordinance 260924 on the 47th and Broadway Tax Increment Financing Plan, with Willett voting Nay.",
+      "claim_ids": [
+        "c4"
+      ],
+      "members_verified": true
+    },
+    {
+      "text": "Ordinance 260940 on the Denali III, LLC industrial development plan was held on docket.",
+      "claim_ids": [
+        "c5"
+      ]
+    }
+  ],
+  "claims": [
+    {
+      "id": "c1",
+      "type": "vote",
+      "statement": "Resolution 260976 declaring National Injury Prevention Day was adopted.",
+      "quote": "A motion was made that this Special Action be Adopted.. The motion carried by \nthe following vote:",
+      "page": 2,
+      "matter_file": "260976",
+      "outcome": "adopted",
+      "amount_usd": null,
+      "code_checks": {
+        "api": "agree",
+        "quote_match": "exact"
+      }
+    },
+    {
+      "id": "c2",
+      "type": "vote",
+      "statement": "Resolution 260977 recognizing Community Engagement University graduates was adopted.",
+      "quote": "A motion was made that this Special Action be Adopted.. The motion carried by \nthe following vote:",
+      "page": 3,
+      "matter_file": "260977",
+      "outcome": "adopted",
+      "amount_usd": null,
+      "code_checks": {
+        "api": "agree",
+        "quote_match": "exact"
+      }
+    },
+    {
+      "id": "c3",
+      "type": "vote",
+      "statement": "Resolution 260978 recognizing the Kansas City Irish Center's award recipients was adopted.",
+      "quote": "This matter was Adopted",
+      "page": 3,
+      "matter_file": "260978",
+      "outcome": "adopted",
+      "amount_usd": null,
+      "code_checks": {
+        "api": "agree",
+        "quote_match": "exact"
+      }
+    },
+    {
+      "id": "c4",
+      "type": "vote",
+      "statement": "Ordinance 260924 on the 47th and Broadway Tax Increment Financing Plan was passed as substituted as amended, with Willett voting Nay.",
+      "quote": "A motion was made that this Ordinance be Passed as Substituted as Amended.. \nThe motion carried by the following vote:",
+      "page": 4,
+      "matter_file": "260924",
+      "outcome": "passed",
+      "amount_usd": null,
+      "code_checks": {
+        "api": "agree",
+        "quote_match": "exact"
+      },
+      "members_verified": true
+    },
+    {
+      "id": "c5",
+      "type": "vote",
+      "statement": "Ordinance 260940 on the Denali III, LLC industrial development plan was held on docket.",
+      "quote": "This Ordinance was Held on Docket - Held on Docket 1 week - December 3, 2026",
+      "page": 5,
+      "matter_file": "260940",
+      "outcome": "held",
+      "amount_usd": null,
+      "code_checks": {
+        "api": "agree",
+        "quote_match": "exact"
+      }
+    },
+    {
+      "id": "c6",
+      "type": "vote",
+      "statement": "Committee substitute Ordinance 260951 on the Port Authority loan was passed as substituted.",
+      "quote": "A motion was made that this Ordinance be Passed as Substituted.. The motion \ncarried by the following vote:",
+      "page": 5,
+      "matter_file": "260951",
+      "outcome": "passed",
+      "amount_usd": null,
+      "code_checks": {
+        "api": "agree",
+        "quote_match": "exact"
+      }
+    },
+    {
+      "id": "c8",
+      "type": "vote",
+      "statement": "Ordinance 260860 on a housing development corporation was passed as substituted.",
+      "quote": "A motion was made that this Ordinance be Passed as Substituted.. The motion \ncarried by the following vote:",
+      "page": 6,
+      "matter_file": "260860",
+      "outcome": "passed",
+      "amount_usd": null,
+      "code_checks": {
+        "api": "agree",
+        "quote_match": "exact"
+      }
+    },
+    {
+      "id": "c9",
+      "type": "vote",
+      "statement": "Resolution 260958 amending the Heart of the City Area Plan was adopted.",
+      "quote": "A motion was made that this Resolution be Adopted.. The motion carried by the \nfollowing vote:",
+      "page": 6,
+      "matter_file": "260958",
+      "outcome": "adopted",
+      "amount_usd": null,
+      "code_checks": {
+        "api": "agree",
+        "quote_match": "exact"
+      }
+    },
+    {
+      "id": "c10",
+      "type": "vote",
+      "statement": "Resolution 260972 supporting Stay Covered KC was adopted.",
+      "quote": "A motion was made that this Resolution be Adopted.. The motion carried by the \nfollowing vote:",
+      "page": 7,
+      "matter_file": "260972",
+      "outcome": "adopted",
+      "amount_usd": null,
+      "code_checks": {
+        "api": "agree",
+        "quote_match": "exact"
+      }
+    },
+    {
+      "id": "c12",
+      "type": "vote",
+      "statement": "Ordinance 260954 accepting a Missouri Department of Conservation grant was passed as substituted.",
+      "quote": "A motion was made that this Ordinance be Passed as Substituted.. The motion \ncarried by the following vote:",
+      "page": 8,
+      "matter_file": "260954",
+      "outcome": "passed",
+      "amount_usd": null,
+      "code_checks": {
+        "api": "agree",
+        "quote_match": "exact"
+      }
+    },
+    {
+      "id": "c13",
+      "type": "spending",
+      "statement": "Ordinance 260954 accepts a $49,000.00 grant and appropriates $49,000.00 in Fund 2580.",
+      "quote": "estimating and appropriating $ 49,000.00 in Fund 2580",
+      "page": 8,
+      "matter_file": "260954",
+      "outcome": null,
+      "amount_usd": 49000,
+      "code_checks": {
+        "api": "unchecked",
+        "quote_match": "exact"
+      }
+    },
+    {
+      "id": "c14",
+      "type": "vote",
+      "statement": "Ordinance 260969 reappropriating GO Bond proceeds was passed.",
+      "quote": "A motion was made that this Ordinance be Passed.. The motion carried by the \nfollowing vote:",
+      "page": 9,
+      "matter_file": "260969",
+      "outcome": "passed",
+      "amount_usd": null,
+      "code_checks": {
+        "api": "agree",
+        "quote_match": "exact"
+      }
+    },
+    {
+      "id": "c15",
+      "type": "spending",
+      "statement": "Ordinance 260969 reduces and reappropriates $2,917,600.00 in the General Obligation Bond Series 2023A Fund.",
+      "quote": "Reducing $2,917,600.00 of the appropriations in the General Obligation Bond Series 2023A \nFund",
+      "page": 9,
+      "matter_file": "260969",
+      "outcome": null,
+      "amount_usd": 2917600,
+      "code_checks": {
+        "api": "unchecked",
+        "quote_match": "exact"
+      }
+    },
+    {
+      "id": "c16",
+      "type": "spending",
+      "statement": "Ordinance 260975 appropriates $130,000.00 from the Shared Success Fund for a cooperative agreement.",
+      "quote": "appropriating \n$130,000.00 from the Shared Success Fund",
+      "page": 9,
+      "matter_file": "260975",
+      "outcome": null,
+      "amount_usd": 130000,
+      "code_checks": {
+        "api": "unchecked",
+        "quote_match": "exact"
+      }
+    },
+    {
+      "id": "c17",
+      "type": "vote",
+      "statement": "Ordinance 260975 on the Belleview Townhomes agreement was passed.",
+      "quote": "A motion was made that this Ordinance be Passed.. The motion carried by the \nfollowing vote:",
+      "page": 9,
+      "matter_file": "260975",
+      "outcome": "passed",
+      "amount_usd": null,
+      "code_checks": {
+        "api": "agree",
+        "quote_match": "exact"
+      }
+    },
+    {
+      "id": "c19",
+      "type": "vote",
+      "statement": "Ordinance 260923 rezoning for the Twin Creeks Master Planned Development was passed.",
+      "quote": "This matter was Passed",
+      "page": 10,
+      "matter_file": "260923",
+      "outcome": "passed",
+      "amount_usd": null,
+      "code_checks": {
+        "api": "agree",
+        "quote_match": "exact"
+      }
+    },
+    {
+      "id": "c21",
+      "type": "vote",
+      "statement": "Ordinance 260974 rezoning land on N.E. Englewood Road was passed.",
+      "quote": "A motion was made that this Ordinance be Passed.. The motion carried by the \nfollowing vote:",
+      "page": 11,
+      "matter_file": "260974",
+      "outcome": "passed",
+      "amount_usd": null,
+      "code_checks": {
+        "api": "agree",
+        "quote_match": "exact"
+      }
+    },
+    {
+      "id": "c22",
+      "type": "vote",
+      "statement": "Committee substitute Ordinance 260711 on the LAZ Parking Midwest contract renewal was passed as substituted.",
+      "quote": "A motion was made that this Ordinance be Passed as Substituted.. The motion \ncarried by the following vote:",
+      "page": 12,
+      "matter_file": "260711",
+      "outcome": "passed",
+      "amount_usd": null,
+      "code_checks": {
+        "api": "agree",
+        "quote_match": "exact"
+      }
+    },
+    {
+      "id": "c23",
+      "type": "spending",
+      "statement": "Ordinance 260711 authorizes a one-year contract renewal with LAZ Parking Midwest, LLC in the amount of $1,942,859.",
+      "quote": "one-year contract renewal (6224020014) in the amount of $ 1,942,859 with LAZ Parking Midwest, LLC",
+      "page": 12,
+      "matter_file": "260711",
+      "outcome": null,
+      "amount_usd": 1942859,
+      "code_checks": {
+        "api": "unchecked",
+        "quote_match": "exact"
+      }
+    },
+    {
+      "id": "c24",
+      "type": "vote",
+      "statement": "Ordinance 260942 on the Ace Pipe Cleaning contract renewal was passed.",
+      "quote": "A motion was made that this Ordinance be Passed.. The motion carried by the \nfollowing vote:",
+      "page": 13,
+      "matter_file": "260942",
+      "outcome": "passed",
+      "amount_usd": null,
+      "code_checks": {
+        "api": "agree",
+        "quote_match": "exact"
+      }
+    },
+    {
+      "id": "c25",
+      "type": "vote",
+      "statement": "Ordinance 260966 authorizing condemnation for the Holmes Road reconstruction was passed.",
+      "quote": "A motion was made that this Ordinance be Passed.. The motion carried by the \nfollowing vote:",
+      "page": 13,
+      "matter_file": "260966",
+      "outcome": "passed",
+      "amount_usd": null,
+      "code_checks": {
+        "api": "agree",
+        "quote_match": "exact"
+      }
+    },
+    {
+      "id": "c26",
+      "type": "vote",
+      "statement": "Ordinance 260967 on Public Works Standards and Design Criteria was passed.",
+      "quote": "A motion was made that this Ordinance be Passed.. The motion carried by the \nfollowing vote:",
+      "page": 14,
+      "matter_file": "260967",
+      "outcome": "passed",
+      "amount_usd": null,
+      "code_checks": {
+        "api": "agree",
+        "quote_match": "exact"
+      }
+    },
+    {
+      "id": "c27",
+      "type": "vote",
+      "statement": "Ordinance 260968 on the Burns & McDonnell amendment was passed as substituted.",
+      "quote": "A motion was made that this Ordinance be Passed as Substituted.. The motion \ncarried by the following vote:",
+      "page": 14,
+      "matter_file": "260968",
+      "outcome": "passed",
+      "amount_usd": null,
+      "code_checks": {
+        "api": "agree",
+        "quote_match": "exact"
+      }
+    },
+    {
+      "id": "c29",
+      "type": "vote",
+      "statement": "Ordinance 260970 on the Jackson County funding agreement for Lee's Summit Road was passed.",
+      "quote": "A motion was made that this Ordinance be Passed.. The motion carried by the \nfollowing vote:",
+      "page": 15,
+      "matter_file": "260970",
+      "outcome": "passed",
+      "amount_usd": null,
+      "code_checks": {
+        "api": "agree",
+        "quote_match": "exact"
+      }
+    },
+    {
+      "id": "c30",
+      "type": "spending",
+      "statement": "Ordinance 260970 estimates $1,000,000.00 in contributions from Jackson County and appropriates $1,000,000.00 in the Capital Improvements Sales Tax Fund.",
+      "quote": "appropriating $1,000,000.00 from the Unappropriated Fund Balance of the \nCapital Improvements Sales Tax Fund ( 3090)",
+      "page": 15,
+      "matter_file": "260970",
+      "outcome": null,
+      "amount_usd": 1000000,
+      "code_checks": {
+        "api": "unchecked",
+        "quote_match": "exact"
+      }
+    },
+    {
+      "id": "c32",
+      "type": "vote",
+      "statement": "Ordinance 260985 was referred to the Finance, Governance and Public Safety Committee.",
+      "quote": "referredto the Finance, Governance and Public Safety Committee due back on \n12/1/2026",
+      "page": 16,
+      "matter_file": "260985",
+      "outcome": "referred",
+      "amount_usd": null,
+      "code_checks": {
+        "api": "agree",
+        "quote_match": "exact"
+      }
+    },
+    {
+      "id": "c33",
+      "type": "vote",
+      "statement": "Ordinance 260988 on a Council Chambers Reservation Program was referred to committee.",
+      "quote": "referredto the Finance, Governance and Public Safety Committee due back on \n12/1/2026",
+      "page": 16,
+      "matter_file": "260988",
+      "outcome": "referred",
+      "amount_usd": null,
+      "code_checks": {
+        "api": "agree",
+        "quote_match": "exact"
+      }
+    },
+    {
+      "id": "c34",
+      "type": "vote",
+      "statement": "Resolution 260989 on Missouri legislative priorities was referred to committee.",
+      "quote": "referredto the Finance, Governance and Public Safety Committee due back on \n12/1/2026",
+      "page": 16,
+      "matter_file": "260989",
+      "outcome": "referred",
+      "amount_usd": null,
+      "code_checks": {
+        "api": "agree",
+        "quote_match": "exact"
+      }
+    },
+    {
+      "id": "c35",
+      "type": "vote",
+      "statement": "Resolution 260990 on regional priorities was referred to committee.",
+      "quote": "referredto the Finance, Governance and Public Safety Committee due back on \n12/1/2026",
+      "page": 17,
+      "matter_file": "260990",
+      "outcome": "referred",
+      "amount_usd": null,
+      "code_checks": {
+        "api": "agree",
+        "quote_match": "exact"
+      }
+    },
+    {
+      "id": "c36",
+      "type": "vote",
+      "statement": "Resolution 260991 on federal legislative priorities was referred to committee.",
+      "quote": "referredto the Finance, Governance and Public Safety Committee due back on \n12/1/2026",
+      "page": 17,
+      "matter_file": "260991",
+      "outcome": "referred",
+      "amount_usd": null,
+      "code_checks": {
+        "api": "agree",
+        "quote_match": "exact"
+      }
+    },
+    {
+      "id": "c37",
+      "type": "vote",
+      "statement": "Resolution 260992 on the Prospect Ave water main project was referred to committee.",
+      "quote": "referredto the Finance, Governance and Public Safety Committee due back on \n12/1/2026",
+      "page": 17,
+      "matter_file": "260992",
+      "outcome": "referred",
+      "amount_usd": null,
+      "code_checks": {
+        "api": "agree",
+        "quote_match": "exact"
+      }
+    },
+    {
+      "id": "c38",
+      "type": "spending",
+      "statement": "Ordinance 260979 on the HOPWA award of $2,321,911.00 was referred to committee.",
+      "quote": "in the amount of \n$2,321,911.00 ; estimating revenue in the amount of $ 270,965.00",
+      "page": 18,
+      "matter_file": "260979",
+      "outcome": null,
+      "amount_usd": 2321911,
+      "code_checks": {
+        "api": "unchecked",
+        "quote_match": "exact"
+      }
+    },
+    {
+      "id": "c39",
+      "type": "vote",
+      "statement": "Ordinance 260979 was referred to the Neighborhood Planning and Development Committee.",
+      "quote": "referredto the Neighborhood Planning and Development Committee due back on \n12/1/2026",
+      "page": 18,
+      "matter_file": "260979",
+      "outcome": "referred",
+      "amount_usd": null,
+      "code_checks": {
+        "api": "agree",
+        "quote_match": "exact"
+      }
+    },
+    {
+      "id": "c40",
+      "type": "vote",
+      "statement": "Ordinance 260981 on a development plan at N. Summit Street was referred to committee.",
+      "quote": "referredto the Neighborhood Planning and Development Committee due back on \n12/1/2026",
+      "page": 18,
+      "matter_file": "260981",
+      "outcome": "referred",
+      "amount_usd": null,
+      "code_checks": {
+        "api": "agree",
+        "quote_match": "exact"
+      }
+    },
+    {
+      "id": "c42",
+      "type": "vote",
+      "statement": "Ordinance 260983 on community improvement districts was referred to committee.",
+      "quote": "referredto the Neighborhood Planning and Development Committee due back on \n12/1/2026",
+      "page": 19,
+      "matter_file": "260983",
+      "outcome": "referred",
+      "amount_usd": null,
+      "code_checks": {
+        "api": "agree",
+        "quote_match": "exact"
+      }
+    },
+    {
+      "id": "c43",
+      "type": "vote",
+      "statement": "Resolution 260986 on the Truman Plaza Area Plan was referred to committee.",
+      "quote": "referredto the Neighborhood Planning and Development Committee due back on \n12/1/2026",
+      "page": 20,
+      "matter_file": "260986",
+      "outcome": "referred",
+      "amount_usd": null,
+      "code_checks": {
+        "api": "agree",
+        "quote_match": "exact"
+      }
+    },
+    {
+      "id": "c45",
+      "type": "vote",
+      "statement": "Ordinance 260984 on traffic regulations was referred to the Transportation, Infrastructure and Operations Committee.",
+      "quote": "referredto the Transportation, Infrastructure and Operations Committee due back \non 12/1/2026",
+      "page": 21,
+      "matter_file": "260984",
+      "outcome": "referred",
+      "amount_usd": null,
+      "code_checks": {
+        "api": "agree",
+        "quote_match": "exact"
+      }
+    },
+    {
+      "id": "c46",
+      "type": "vote",
+      "statement": "Ordinance 260993 on streetcar obstructions was referred to the Transportation, Infrastructure and Operations Committee.",
+      "quote": "referredto the Transportation, Infrastructure and Operations Committee due back \non 12/1/2026",
+      "page": 21,
+      "matter_file": "260993",
+      "outcome": "referred",
+      "amount_usd": null,
+      "code_checks": {
+        "api": "agree",
+        "quote_match": "exact"
+      }
+    },
+    {
+      "id": "c47",
+      "type": "vote",
+      "statement": "Resolution 260994 on South Kansas City conditions was referred to committee.",
+      "quote": "referredto the Finance, Governance and Public Safety Committee due back on \n12/1/2026",
+      "page": 22,
+      "matter_file": "260994",
+      "outcome": "referred",
+      "amount_usd": null,
+      "code_checks": {
+        "api": "agree",
+        "quote_match": "exact"
+      }
+    },
+    {
+      "id": "c48",
+      "type": "vote",
+      "statement": "Ordinance 260995 on sanitary sewer funding in Platte County was referred to committee.",
+      "quote": "referredto the Neighborhood Planning and Development Committee due back on \n12/1/2026",
+      "page": 22,
+      "matter_file": "260995",
+      "outcome": "referred",
+      "amount_usd": null,
+      "code_checks": {
+        "api": "agree",
+        "quote_match": "exact"
+      }
+    }
+  ],
+  "members_checked": true,
+  "report": {
+    "doc_id": "kc-19622-minutes",
+    "claims_extracted": 50,
+    "claims_accepted": 40,
+    "claims_rejected": 10,
+    "claim_pass_rate": 0.8,
+    "reject_reasons": {
+      "member_named": 1,
+      "number_not_in_quote": 7,
+      "quote_from_other_item": 1,
+      "quote_too_short": 2
+    },
+    "code_vs_checker": {
+      "compared": 50,
+      "agree": 40
+    },
+    "sentences_written": 10,
+    "sentences_published": 6,
+    "sentence_pass_rate": 0.6,
+    "headline_checked": false,
+    "coverage": {
+      "voted": 22,
+      "covered": 19,
+      "rate": 0.864,
+      "missing": [
+        "260870",
+        "260957",
+        "260973"
+      ]
+    },
+    "at": "2026-11-14T08:21:22+00:00",
+    "stub": false,
+    "auth": "subscription",
+    "usage": {
+      "tokens_in": 74941,
+      "tokens_out": 10760,
+      "turns": 7,
+      "seconds": 57.6,
+      "tokens": {
+        "input": 8,
+        "cacheRead": 9674,
+        "cacheWrite": 65259,
+        "output": 10760
+      },
+      "api_equiv_usd": 0.3696,
+      "by_stage": {
+        "extractor": {
+          "tokens_in": 22540,
+          "tokens_out": 6476,
+          "tokens": {
+            "input": 2,
+            "cacheRead": 0,
+            "cacheWrite": 22538,
+            "output": 6476
+          },
+          "turns": 2,
+          "seconds": 31.0,
+          "api_equiv_usd": 0.154916,
+          "models": [
+            "claude-sonnet-5-5"
+          ]
+        },
+        "summarizer": {
+          "tokens_in": 19829,
+          "tokens_out": 970,
+          "tokens": {
+            "input": 4,
+            "cacheRead": 9674,
+            "cacheWrite": 10151,
+            "output": 970
+          },
+          "turns": 3,
+          "seconds": 7.6,
+          "api_equiv_usd": 0.0512794,
+          "models": [
+            "claude-sonnet-5-5"
+          ]
+        },
+        "fact-checker": {
+          "tokens_in": 32572,
+          "tokens_out": 3314,
+          "tokens": {
+            "input": 2,
+            "cacheRead": 0,
+            "cacheWrite": 32570,
+            "output": 3314
+          },
+          "turns": 2,
+          "seconds": 19.0,
+          "api_equiv_usd": 0.163424,
+          "models": [
+            "claude-sonnet-5-5"
+          ]
+        }
+      }
+    },
+    "models": [
+      "claude-sonnet-5-5"
+    ],
+    "canary": {
+      "total": 4,
+      "checker_caught": 4,
+      "code_caught": 2,
+      "caught_by_either": 4,
+      "by_type": {
+        "flip_outcome": {
+          "total": 2,
+          "checker_caught": 2
+        },
+        "overstate": {
+          "total": 1,
+          "checker_caught": 1
+        },
+        "swap_body": {
+          "total": 1,
+          "checker_caught": 1
+        }
+      }
+    }
+  }
+}
